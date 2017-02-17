@@ -1,4 +1,4 @@
-import requests, os, sys, tempfile, subprocess, base64, time
+import requests, os, sys, tempfile, subprocess, base64, time, winreg
 
 """
 用來抓取速度最快的VPN
@@ -76,5 +76,63 @@ class VPN:
         print("Country: " + pairs[5][1])
 
         print("\nLaunching VPN...")
-        #  回傳IP
-        return winner[1]
+
+        #  Debug用  將vpn config檔寫入txt檔
+        # f = open(r'C:\Users\vi000\Desktop\vpn config.txt', 'w', encoding='UTF-8')
+        # f.write(str(base64.b64decode(winner[-1])).replace(r"\r\n", "\n"))
+        # f.close()
+
+        #  Windows專用 儲存open vpn config檔
+        _, path = tempfile.mkstemp()
+        f = open(path, 'w')
+        f.write(str(base64.b64decode(winner[-1])).replace(r"\r\n", "\n"))
+        f.close()
+        print('openvpn --config '+path)
+        openvpn_cmd = ['openvpn', '--config ', path]
+        x = subprocess.call(openvpn_cmd)
+
+        #  以下是linux專用
+        # _, path = tempfile.mkstemp()
+        # f = open(path, 'w')
+        # f.write(base64.b64decode(winner[-1]))
+        # f.write('\nscript-security 2\nup /etc/openvpn/update-resolv-conf\ndown /etc/openvpn/update-resolv-conf')
+        # f.close()
+        #
+        # x = subprocess.Popen(['sudo', 'openvpn', '--config', path])
+        #
+
+
+        try:
+            while True:
+                time.sleep(600)
+        # termination with Ctrl+C
+        except:
+            try:
+                x.kill()
+            except:
+                pass
+            while x.poll() != 0:
+                time.sleep(1)
+            print('\nVPN terminated')
+
+    #  確認VPN有無連線上
+    def testVPN(self, vpnAddr):
+        proxies = {
+            "https": "http://"+vpnAddr
+        }
+        r = requests.get('http://www.icanhazip.com', proxies=proxies)
+        print("icanhazip回傳的IP是" + r.text)
+
+    #  回傳環境變數 用來判斷有沒有安裝open vpn
+    #  path = PathFromReg()
+    #  print('openvpn' in path.lower())
+    def PathFromReg(self):
+        loc = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+        key = winreg.OpenKey(reg, loc)
+        n_val = winreg.QueryInfoKey(key)[1]
+        for i in range(n_val):
+            val = winreg.EnumValue(key, i)
+            if val[0] == 'Path':
+                return val[1]
+

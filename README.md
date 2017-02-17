@@ -1,8 +1,6 @@
-# RailWayTicket
-訂票
 
-程式架構
-------------------
-讀取VPN
-圖型驗證
-台鐵爬蟲
+
+如何安裝
+-----------------------------
+下載安裝OpenVPN 選擇Installer, Windows Vista and later
+https://openvpn.net/index.php/open-source/downloads.html

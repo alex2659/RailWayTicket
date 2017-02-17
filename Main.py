@@ -4,3 +4,4 @@ from VPN import VPN
 a = VPN("JP")
 
 b= a.getBestVPN()
+
