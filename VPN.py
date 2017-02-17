@@ -1,4 +1,4 @@
-import requests, os, sys, tempfile, subprocess, base64, time, winreg
+import requests, os, sys, tempfile, subprocess, base64, time, winreg,platform
 
 """
 用來抓取速度最快的VPN
@@ -27,6 +27,10 @@ class VPN:
 
         self.country = country
 
+        path=self.PathFromReg()
+        if 'openvpn' not in path.lower():
+            raise '尚未安裝openVPN!!'
+
         if len(country) == 0:
             self.index = -1  # 如果沒指派國家 index為-1
         elif len(country) == 2:
@@ -37,8 +41,8 @@ class VPN:
             print('請指定國家(全名或縮寫) 或不輸入，預設判斷全部資料')
             exit(1)
 
-    #  取得最快速的VPN 回傳IP
-    def getBestVPN(self):
+    #  連接上最快速的VPN
+    def ConnectVPN(self):
         try:
             print("====Start to getting VPN====")
             vpn_data = requests.get('http://www.vpngate.net/api/iphone/').text.replace('\r','')
@@ -83,44 +87,36 @@ class VPN:
         # f.close()
 
         #  Windows專用 儲存open vpn config檔
-        _, path = tempfile.mkstemp()
-        f = open(path, 'w')
-        f.write(str(base64.b64decode(winner[-1])).replace(r"\r\n", "\n"))
-        f.close()
-        print('openvpn --config '+path)
-        openvpn_cmd = ['openvpn', '--config ', path]
-        x = subprocess.call(openvpn_cmd)
+        #  需要用系統管理員權限執行CMD 才能正確執行
+        if platform.system().upper() == "WINDOWS":
+            _, path = tempfile.mkstemp()
+            f = open(path, 'w')
+            f.write(base64.b64decode(winner[-1]).decode('utf-8').replace(r"\r\n", "\n"))
+            f.close()
+            cmd = "openvpn --config "+path
+            self.process = subprocess.Popen(cmd, shell=True)
+        elif platform.system().upper() == "LINUX":
+            _, path = tempfile.mkstemp()
+            f = open(path, 'w')
+            f.write(base64.b64decode(winner[-1]))
+            f.write('\nscript-security 2\nup /etc/openvpn/update-resolv-conf\ndown /etc/openvpn/update-resolv-conf')
+            f.close()
 
-        #  以下是linux專用
-        # _, path = tempfile.mkstemp()
-        # f = open(path, 'w')
-        # f.write(base64.b64decode(winner[-1]))
-        # f.write('\nscript-security 2\nup /etc/openvpn/update-resolv-conf\ndown /etc/openvpn/update-resolv-conf')
-        # f.close()
-        #
-        # x = subprocess.Popen(['sudo', 'openvpn', '--config', path])
-        #
+            self.process = subprocess.Popen(['sudo', 'openvpn', '--config', path])
 
-
-        try:
-            while True:
-                time.sleep(600)
-        # termination with Ctrl+C
-        except:
+    #  只有Linux會用到
+    def disConnect(self):
             try:
-                x.kill()
+                self.process.kill()
             except:
                 pass
-            while x.poll() != 0:
+            while self.process.poll() != 0:
                 time.sleep(1)
             print('\nVPN terminated')
 
     #  確認VPN有無連線上
-    def testVPN(self, vpnAddr):
-        proxies = {
-            "https": "http://"+vpnAddr
-        }
-        r = requests.get('http://www.icanhazip.com', proxies=proxies)
+    def testVPN(self):
+        r = requests.get('http://www.icanhazip.com')
         print("icanhazip回傳的IP是" + r.text)
 
     #  回傳環境變數 用來判斷有沒有安裝open vpn

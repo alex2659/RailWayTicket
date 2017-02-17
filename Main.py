@@ -1,7 +1,7 @@
 from VPN import VPN
 
 # 取得VPN
-a = VPN("JP")
+a = VPN()
 
-b= a.getBestVPN()
+b= a.ConnectVPN()
 
