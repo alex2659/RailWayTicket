@@ -1,7 +1,17 @@
 from VPN import VPN
+from Image import Image
+import os, random
 
+__CaptchaPath__ = r"D:\RailWayCapcha"
 # 取得VPN
-a = VPN()
+# a = VPN()
+#
+# b= a.ConnectVPN()
 
-b= a.ConnectVPN()
 
+#  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
+x = Image(__CaptchaPath__, random.choice(os.listdir(__CaptchaPath__)))
+x.threshold()
+x.removeNoise()
+x.splitImg()
+x.positiveImg()
