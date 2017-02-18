@@ -39,6 +39,7 @@ class Image:
     #  切割圖片
     def splitImg(self):
         _, contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
 
         for index, (c, _) in enumerate(cnts):
@@ -55,8 +56,7 @@ class Image:
                             break
                     if add:
                         self.arr.append((x, y, w, h))
-                        # cv2.imshow(self.imageName, self.im[y: y + h, x: x + w])
-                        # cv2.waitKey()
+                        #  self.showImg(self.im[y: y + h, x: x + w])
 
             except IndexError:
                 pass
@@ -96,8 +96,7 @@ class Image:
             thresh = cv2.resize(thresh, (50, 50))
 
             #  cv2.imwrite('tmp/' + str(index) + '.png', thresh)
-            #  cv2.imshow(self.imageName, thresh)
-            #  cv2.waitKey()
+            #  self.showImg(thresh)
 
     #  將圖片顯示出來
     def showImg(self,img):
