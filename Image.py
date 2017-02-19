@@ -99,7 +99,7 @@ class Image:
             #  self.showImg(thresh)
 
     #  將圖片顯示出來
-    def showImg(self,img):
+    def showImg(self,img=None):
 
         if img is None:
             img = self.im
