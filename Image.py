@@ -1,6 +1,7 @@
 from PIL import Image, ImageEnhance
 import cv2
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 
 class Image:
     #  傳入圖片所在目錄和檔名
@@ -13,12 +14,14 @@ class Image:
         self.arr = []
         #  將圖片做灰階
         self.im = cv2.imread(Path + "\\" + ImgName, flags=cv2.IMREAD_GRAYSCALE)
+        self.showImg()
 
     #  濾背景色
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         self.retval, self.im = cv2.threshold(self.im, 115, 255, cv2.THRESH_BINARY_INV)
+        self.showImg()
 
     #  去除雜點
     def removeNoise(self):
@@ -38,6 +41,7 @@ class Image:
                         self.im[i][j] = 0
 
         self.im = cv2.dilate(self.im, (2, 2), iterations=1)
+        self.showImg()
 
     #  切割圖片
     def splitImg(self):
@@ -62,9 +66,9 @@ class Image:
 
             except IndexError:
                 pass
-        #  印出切割出的圖片
-        # imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
-        # self.showImgArray(imgarr)
+        Imgarr =[self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
+        self.showImgArray(Imgarr)
+
 
     #  圖片轉正
     def positiveImg(self):
@@ -122,14 +126,18 @@ class Image:
     #  將多個圖片顯示在一個figure 傳入參數為圖片陣列
     def showImgArray(self, arrImg):
         if len(self.arr) > 0:
-            fig, ax = plt.subplots(nrows=1, ncols=len(arrImg), sharex=True, sharey=True)
-            ax = ax.flatten()
+            fig = plt.figure()
+            gs = gridspec.GridSpec(2, len(arrImg))
+            # 原始驗證碼的圖片
+            ax1 = fig.add_subplot(gs[0, :])
+            originImg = cv2.imread(self.Path + "\\" + self.imageName)
+            ax1.imshow(originImg, interpolation='nearest')
+            #  將圖片陣列顯示在第二列
             for index, img in enumerate(arrImg):
-                ax[index].imshow(img, interpolation='nearest')
-            ax[0].set_xticks([])
-            ax[0].set_yticks([])
+                ax = fig.add_subplot(gs[1, index])
+                ax.imshow(img, interpolation='nearest')
+
             plt.tight_layout()
-            plt.show()
             plt.show()
         else:
             print('圖片數字陣列為空')
