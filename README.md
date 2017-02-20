@@ -31,3 +31,6 @@ pip install opencv_python-3.1.0+contrib_opencl-cp35-cp35m-win_amd64.whl 進行�
 如果你想要自己編譯安裝，可以參考這篇：
 http://docs.opencv.org/3.1.0/d5/de5/tutorial_py_setup_in_windows.html
 
+Step4.
+安裝Keras
+

@@ -1,12 +1,15 @@
 from PIL import Image, ImageEnhance
 import cv2
+import matplotlib.pyplot as plt
 
 class Image:
     #  傳入圖片所在目錄和檔名
     def __init__(self, Path,ImgName):
         #  儲存檔名
         self.imageName = ImgName
-        #  用來儲放分割後的圖片
+        #  儲存路徑
+        self.Path = Path
+        #  用來儲放分割後的圖片邊緣坐標(x,y,w,h)
         self.arr = []
         #  將圖片做灰階
         self.im = cv2.imread(Path + "\\" + ImgName, flags=cv2.IMREAD_GRAYSCALE)
@@ -56,13 +59,17 @@ class Image:
                             break
                     if add:
                         self.arr.append((x, y, w, h))
-                        #  self.showImg(self.im[y: y + h, x: x + w])
 
             except IndexError:
                 pass
+        #  印出切割出的圖片
+        # imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
+        # self.showImgArray(imgarr)
 
     #  圖片轉正
     def positiveImg(self):
+
+        imgarr = []
         for index, (x, y, w, h) in enumerate(self.arr):
             roi = self.im[y: y + h, x: x + w]
             thresh = roi.copy()
@@ -94,12 +101,14 @@ class Image:
             thresh = cv2.warpAffine(thresh, M, (col, row))
             # resize 成相同大小以利後續辨識
             thresh = cv2.resize(thresh, (50, 50))
+            imgarr.append(thresh)
+        self.showImgArray(imgarr)
 
-            #  cv2.imwrite('tmp/' + str(index) + '.png', thresh)
-            #  self.showImg(thresh)
+
+
 
     #  將圖片顯示出來
-    def showImg(self,img=None):
+    def showImg(self, img=None):
 
         if img is None:
             img = self.im
@@ -109,3 +118,18 @@ class Image:
         #  調整視窗 讓標題列顯示出來
         cv2.resizeWindow(self.imageName, 250, 60)
         cv2.waitKey()
+
+    #  將多個圖片顯示在一個figure 傳入參數為圖片陣列
+    def showImgArray(self, arrImg):
+        if len(self.arr) > 0:
+            fig, ax = plt.subplots(nrows=1, ncols=len(arrImg), sharex=True, sharey=True)
+            ax = ax.flatten()
+            for index, img in enumerate(arrImg):
+                ax[index].imshow(img, interpolation='nearest')
+            ax[0].set_xticks([])
+            ax[0].set_yticks([])
+            plt.tight_layout()
+            plt.show()
+            plt.show()
+        else:
+            print('圖片數字陣列為空')
