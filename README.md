@@ -3,6 +3,9 @@
 (二)異常訂票 IP 封鎖機制。
 (三)驗證碼改為浮動碼（4~6 碼）。
 
+要爬台鐵網站進行訂票一定要取得 session cookie，
+直接爬訂票頁面會發生錯誤
+爬時刻表網站需要 zLib 解壓縮
 
 如何安裝
 -----------------------------
@@ -36,5 +39,9 @@ pip install opencv_python-3.1.0+contrib_opencl-cp35-cp35m-win_amd64.whl 進行�
 http://docs.opencv.org/3.1.0/d5/de5/tutorial_py_setup_in_windows.html
 
 Step4.
+安裝GCC編譯環境
+指令:conda install mingw libpython
 安裝Keras
-
+Keras的相關設定請參考這篇
+把backend改成theano
+https://keras-cn.readthedocs.io/en/latest/getting_started/keras_windows/
