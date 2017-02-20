@@ -2,26 +2,32 @@ from PIL import Image, ImageEnhance
 import cv2
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+from matplotlib.font_manager import FontProperties
 
 class Image:
     #  傳入圖片所在目錄和檔名
     def __init__(self, Path,ImgName):
+        #  設置matplotlib中文字體
+        self.font = FontProperties(fname=r"c:\windows\fonts\SimSun.ttc", size=14)
         #  儲存檔名
         self.imageName = ImgName
         #  儲存路徑
         self.Path = Path
         #  用來儲放分割後的圖片邊緣坐標(x,y,w,h)
         self.arr = []
+        #  將每個階段做的圖存起來 用來debug
+        self.dicImg = {}
         #  將圖片做灰階
         self.im = cv2.imread(Path + "\\" + ImgName, flags=cv2.IMREAD_GRAYSCALE)
-        self.showImg()
+        self.dicImg.update({"轉灰階": self.im.copy()})
+
 
     #  濾背景色
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         self.retval, self.im = cv2.threshold(self.im, 115, 255, cv2.THRESH_BINARY_INV)
-        self.showImg()
+        self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去除雜點
     def removeNoise(self):
@@ -41,7 +47,7 @@ class Image:
                         self.im[i][j] = 0
 
         self.im = cv2.dilate(self.im, (2, 2), iterations=1)
-        self.showImg()
+        self.dicImg.update({"去噪": self.im.copy()})
 
     #  切割圖片
     def splitImg(self):
@@ -66,8 +72,9 @@ class Image:
 
             except IndexError:
                 pass
-        Imgarr =[self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
-        self.showImgArray(Imgarr)
+        Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
+        self.dicImg.update({"分割圖片": Imgarr})
+        # self.showImgArray(Imgarr)
 
 
     #  圖片轉正
@@ -106,7 +113,8 @@ class Image:
             # resize 成相同大小以利後續辨識
             thresh = cv2.resize(thresh, (50, 50))
             imgarr.append(thresh)
-        self.showImgArray(imgarr)
+        self.dicImg.update({"轉正": imgarr})
+        self.showImgEveryStep()
 
 
 
@@ -123,21 +131,32 @@ class Image:
         cv2.resizeWindow(self.imageName, 250, 60)
         cv2.waitKey()
 
-    #  將多個圖片顯示在一個figure 傳入參數為圖片陣列
-    def showImgArray(self, arrImg):
-        if len(self.arr) > 0:
-            fig = plt.figure()
-            gs = gridspec.GridSpec(2, len(arrImg))
-            # 原始驗證碼的圖片
-            ax1 = fig.add_subplot(gs[0, :])
+    #  將多個圖片顯示在一個figure
+    def showImgEveryStep(self):
+        diclength = len(self.dicImg)
+        if diclength > 0:
+            fig = plt.figure(figsize=(10, 10))
+            gs = gridspec.GridSpec(diclength, 6)
+            # 第一列 原始驗證碼的圖片
+            ax1 = fig.add_subplot(gs[0, :6])
             originImg = cv2.imread(self.Path + "\\" + self.imageName)
             ax1.imshow(originImg, interpolation='nearest')
-            #  將圖片陣列顯示在第二列
-            for index, img in enumerate(arrImg):
-                ax = fig.add_subplot(gs[1, index])
-                ax.imshow(img, interpolation='nearest')
+            ax1.set_title('原始驗證碼', fontproperties=self.font)
+
+            # 依序列出dict物件裡的圖片
+            for index, key in enumerate(self.dicImg):
+                #  如果不是list物件 就是圖片 可以呼叫imshow
+                if not isinstance(self.dicImg[key], list):
+                    ax = fig.add_subplot(gs[index, :6])
+                    ax.imshow(self.dicImg[key], interpolation='nearest')
+                    ax.set_title(key, fontproperties=self.font)
+                else:
+                    for i, img in enumerate(self.dicImg[key]):
+                        ax = fig.add_subplot(gs[index, i])
+                        ax.imshow(img, interpolation='nearest')
 
             plt.tight_layout()
             plt.show()
         else:
             print('圖片數字陣列為空')
+
