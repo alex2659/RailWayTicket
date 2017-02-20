@@ -136,7 +136,7 @@ class Image:
         diclength = len(self.dicImg)
         if diclength > 0:
             fig = plt.figure(figsize=(10, 10))
-            gs = gridspec.GridSpec(diclength, 6)
+            gs = gridspec.GridSpec(diclength+1, 6)
             # 第一列 原始驗證碼的圖片
             ax1 = fig.add_subplot(gs[0, :6])
             originImg = cv2.imread(self.Path + "\\" + self.imageName)
@@ -147,12 +147,12 @@ class Image:
             for index, key in enumerate(self.dicImg):
                 #  如果不是list物件 就是圖片 可以呼叫imshow
                 if not isinstance(self.dicImg[key], list):
-                    ax = fig.add_subplot(gs[index, :6])
+                    ax = fig.add_subplot(gs[index+1, :6])
                     ax.imshow(self.dicImg[key], interpolation='nearest')
                     ax.set_title(key, fontproperties=self.font)
                 else:
                     for i, img in enumerate(self.dicImg[key]):
-                        ax = fig.add_subplot(gs[index, i])
+                        ax = fig.add_subplot(gs[index+1, i])
                         ax.imshow(img, interpolation='nearest')
 
             plt.tight_layout()
