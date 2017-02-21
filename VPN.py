@@ -1,4 +1,5 @@
-import requests, os, sys, tempfile, subprocess, base64, time, winreg,platform
+# encoding: utf-8
+import requests, os, sys, tempfile, subprocess, base64, time, _winreg,platform
 
 """
 用來抓取速度最快的VPN
@@ -124,11 +125,11 @@ class VPN:
     #  print('openvpn' in path.lower())
     def PathFromReg(self):
         loc = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
-        reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-        key = winreg.OpenKey(reg, loc)
-        n_val = winreg.QueryInfoKey(key)[1]
+        reg = _winreg.ConnectRegistry(None, _winreg.HKEY_LOCAL_MACHINE)
+        key = _winreg.OpenKey(reg, loc)
+        n_val = _winreg.QueryInfoKey(key)[1]
         for i in range(n_val):
-            val = winreg.EnumValue(key, i)
+            val = _winreg.EnumValue(key, i)
             if val[0] == 'Path':
                 return val[1]
 

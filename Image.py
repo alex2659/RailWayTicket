@@ -1,3 +1,4 @@
+# encoding: utf-8
 from PIL import Image, ImageEnhance
 import cv2
 import matplotlib.pyplot as plt
@@ -31,8 +32,8 @@ class Image:
 
     #  去除雜點
     def removeNoise(self):
-        for i in range(len(self.im)):
-            for j in range(len(self.im[i])):
+        for i in xrange(len(self.im)):
+            for j in xrange(len(self.im[i])):
                 if self.im[i][j] == 255:
                     count = 0
                     for k in range(-2, 3):
@@ -51,7 +52,7 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
-        _, contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
 
@@ -97,8 +98,8 @@ class Image:
                 right = 0
                 left = 999
 
-                for i in range(r):
-                    for j in range(c):
+                for i in xrange(r):
+                    for j in xrange(c):
                         if t[i][j] == 255 and left > j:
                             left = j
                         if t[i][j] == 255 and right < j:
@@ -158,5 +159,5 @@ class Image:
             plt.tight_layout()
             plt.show()
         else:
-            print('圖片數字陣列為空')
+            print '圖片數字陣列為空'
 

@@ -1,4 +1,5 @@
-from urllib.request import urlretrieve
+# encoding: utf-8
+import urllib
 import os
 import uuid
 import time
@@ -20,7 +21,7 @@ for i in range(picNum):
             fileName = save_path + "\\Sample" + str(uuid.uuid4()) + ".jpg"
             # 文件名是否存在
             if not os.path.exists(fileName):
-                urlretrieve(url, fileName)
+                urllib.urlretrieve(url, fileName)
                 print("第" + str(i) + "張圖片己下載")
                 # 設定延遲
                 time.sleep(1)
