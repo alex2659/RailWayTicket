@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
+import collections
 
 class Image:
     #  傳入圖片所在目錄和檔名
@@ -17,7 +18,7 @@ class Image:
         #  用來儲放分割後的圖片邊緣坐標(x,y,w,h)
         self.arr = []
         #  將每個階段做的圖存起來 用來debug
-        self.dicImg = {}
+        self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
         self.im = cv2.imread(Path + "\\" + ImgName, flags=cv2.IMREAD_GRAYSCALE)
         self.dicImg.update({"轉灰階": self.im.copy()})

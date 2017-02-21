@@ -12,10 +12,10 @@ __CaptchaPath__ = r"D:\RailWayCapcha"
 #
 # b= a.ConnectVPN()
 
-
-#  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
-x = Image(__CaptchaPath__, random.choice(os.listdir(__CaptchaPath__)))
-x.threshold()
-x.removeNoise()
-x.splitImg()
-x.positiveImg()
+for i in range(10):
+    #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
+    x = Image(__CaptchaPath__, random.choice(os.listdir(__CaptchaPath__)))
+    x.threshold()
+    x.removeNoise()
+    x.splitImg()
+    x.positiveImg()
