@@ -5,8 +5,12 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
 import collections
+import os, random, sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 class Image:
+
     #  傳入圖片所在目錄和檔名
     def __init__(self, Path,ImgName):
         #  設置matplotlib中文字體
@@ -116,10 +120,6 @@ class Image:
             thresh = cv2.resize(thresh, (50, 50))
             imgarr.append(thresh)
         self.dicImg.update({"轉正": imgarr})
-        self.showImgEveryStep()
-
-
-
 
     #  將圖片顯示出來
     def showImg(self, img=None):
@@ -162,3 +162,13 @@ class Image:
         else:
             print '圖片數字陣列為空'
 
+
+if __name__ == '__main__':
+    for i in range(1):
+        #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
+        x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
+        x.threshold()
+        x.removeNoise()
+        x.splitImg()
+        x.positiveImg()
+        x.showImgEveryStep()
