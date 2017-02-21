@@ -22,7 +22,6 @@ Step2.
 Step3.
 安裝以下package
 conda install -c https://conda.binstar.org/menpo opencv
-conda install -c anaconda requests=2.12.4
 
 Step4.
 安裝GCC編譯環境
