@@ -34,7 +34,7 @@ class Image:
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
-        self.retval, self.im = cv2.threshold(self.im, 50, 255, cv2.THRESH_BINARY_INV)
+        self.retval, self.im = cv2.threshold(self.im, 70, 255, cv2.THRESH_BINARY_INV)
         self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去噪
@@ -105,7 +105,7 @@ class Image:
                                 pass
 
                     j += countWidth
-                    #  loop 每一個pixel
+        #  loop 每一個pixel
         for j in xrange(width):
             for i in xrange(height):
                 #  如果是黑色點 開始計算線段長度
@@ -243,8 +243,8 @@ if __name__ == '__main__':
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
         x.removeLines()
-        # x.removeNoise()
+        x.removeNoise()
         # x.threshold()
-        # x.splitImg()
+        x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
