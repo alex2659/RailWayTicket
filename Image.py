@@ -82,7 +82,7 @@ class Image:
     def removeLines(self):
         chop = 6  #  線段長度大於chop 才判斷為干擾線
         threshold = 200 #  用來判斷pixel的顏色
-        lineColor = 0  #  將線段設定為黑或白色 255:白 0:黑
+        lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
         (height, width) = self.im.shape
         #  loop 每一個pixel
         for i in xrange(height):
@@ -98,7 +98,11 @@ class Image:
                             break
                     if countWidth >= chop:
                         for c in range(countWidth):
-                            self.im[i, j+c] = lineColor
+                            try:
+                                if self.im[i+1, j+c] > threshold and self.im[i-1, j+c] > threshold:
+                                    self.im[i, j+c] = lineColor
+                            except IndexError:
+                                pass
 
                     j += countWidth
                     #  loop 每一個pixel
@@ -115,7 +119,11 @@ class Image:
                             break
                     if countHeight >= chop:
                         for c in range(countHeight):
-                            self.im[i + c, j] = lineColor
+                            try:
+                                if self.im[i + c, j + 1] > threshold and self.im[i + c, j - 1] > threshold:
+                                    self.im[i + c, j] = lineColor
+                            except IndexError:
+                                pass
 
                     i += countHeight
 
