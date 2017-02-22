@@ -79,14 +79,38 @@ class Image:
         self.dicImg.update({"色調分離": self.im.copy()})
 
     #  干擾線檢測
-    def lineDetect(self):
-        laplacian = cv2.Laplacian(self.im, cv2.CV_8UC1)  # Laplacian Edge Detection
-        minLineLength = 1
-        maxLineGap = 1
-        lines = cv2.HoughLinesP(laplacian, 1, np.pi / 180, 1, minLineLength, maxLineGap)
-        for line in lines:
-            for x1, y1, x2, y2 in line:
-                cv2.line(self.im, (x1, y1), (x2, y2), (255,255,255))
+    def removeLines(self):
+        chop = 6
+        threshold = 200 #  用來判斷pixel的顏色
+        lineColor = 0  #  將線段設定為黑或白色 255:白 0:黑
+        (height, width) = self.im.shape
+        #  loop 每一個pixel
+        for i in xrange(height):
+            for j in xrange(width):
+                #  如果是黑色點 開始計算線段長度
+                if self.im[i][j] < threshold:
+                    countWidth = 0
+                    countHeight = 0
+                    #  移除橫線
+                    for c in range(j, width):
+                        if self.im[i][c] < threshold:
+                            countWidth += 1
+                        else:
+                            break
+                    if countWidth >= chop:
+                        for c in range(countWidth):
+                            self.im[i, j+c] = lineColor
+
+                    #  移除直線
+                    for c in range(i, height):
+                        if self.im[c][j] < threshold:
+                            countHeight += 1
+                        else:
+                            break
+                    if countHeight >= chop:
+                        for c in range(countHeight):
+                            self.im[i+c, j] = lineColor
+
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
                 #  切割圖片
@@ -202,8 +226,8 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
-        # x.lineDetect()
-        x.removeNoise()
+        x.removeLines()
+        # x.removeNoise()
         # x.threshold()
         # x.splitImg()
         # x.positiveImg()
