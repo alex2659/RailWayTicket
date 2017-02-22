@@ -58,8 +58,8 @@ class Image:
         self.dicImg.update({"去噪": self.im.copy()})
 
     #  色調分離
-    def posterization(self):
-        n = 4  # Number of levels of quantization
+    def posterization(self,levels=4):
+        n = levels  # Number of levels of quantization
 
         indices = np.arange(0, 256)  # List of all colors
 
@@ -80,7 +80,7 @@ class Image:
 
     #  干擾線檢測
     def removeLines(self):
-        chop = 6
+        chop = 6  #  線段長度大於chop 才判斷為干擾線
         threshold = 200 #  用來判斷pixel的顏色
         lineColor = 0  #  將線段設定為黑或白色 255:白 0:黑
         (height, width) = self.im.shape
