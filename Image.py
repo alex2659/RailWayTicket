@@ -90,7 +90,6 @@ class Image:
                 #  如果是黑色點 開始計算線段長度
                 if self.im[i][j] < threshold:
                     countWidth = 0
-                    countHeight = 0
                     #  移除橫線
                     for c in range(j, width):
                         if self.im[i][c] < threshold:
@@ -101,7 +100,14 @@ class Image:
                         for c in range(countWidth):
                             self.im[i, j+c] = lineColor
 
-                    #  移除直線
+                    j += countWidth
+                    #  loop 每一個pixel
+        for j in xrange(width):
+            for i in xrange(height):
+                #  如果是黑色點 開始計算線段長度
+                if self.im[i][j] < threshold:
+                    countHeight = 0
+                    #  移除橫線
                     for c in range(i, height):
                         if self.im[c][j] < threshold:
                             countHeight += 1
@@ -109,11 +115,13 @@ class Image:
                             break
                     if countHeight >= chop:
                         for c in range(countHeight):
-                            self.im[i+c, j] = lineColor
+                            self.im[i + c, j] = lineColor
+
+                    i += countHeight
 
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
-                #  切割圖片
+    #  切割圖片
     def splitImg(self):
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
