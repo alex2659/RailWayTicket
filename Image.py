@@ -35,6 +35,8 @@ class Image:
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         self.retval, self.im = cv2.threshold(self.im, 70, 255, cv2.THRESH_BINARY_INV)
+        # 存檔
+        # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
         self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去噪
@@ -126,7 +128,8 @@ class Image:
                                 pass
 
                     i += countHeight
-
+        # 存檔
+        # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     #  切割圖片
@@ -227,9 +230,12 @@ class Image:
                     ax.imshow(self.dicImg[key], interpolation='nearest')
                     ax.set_title(key, fontproperties=self.font)
                 else:
-                    for i, img in enumerate(self.dicImg[key]):
-                        ax = fig.add_subplot(gs[index+1, i])
-                        ax.imshow(img, interpolation='nearest')
+                    try:
+                        for i, img in enumerate(self.dicImg[key]):
+                            ax = fig.add_subplot(gs[index+1, i])
+                            ax.imshow(img, interpolation='nearest')
+                    except IndexError:
+                        pass
 
             plt.tight_layout()
             plt.show()
@@ -244,7 +250,7 @@ if __name__ == '__main__':
         x.posterization()
         x.removeLines()
         x.removeNoise()
-        # x.threshold()
+        x.threshold()
         x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
