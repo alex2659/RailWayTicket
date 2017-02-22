@@ -30,14 +30,14 @@ class Image:
         self.dicImg.update({"轉灰階": self.im.copy()})
 
 
-    #  濾背景色
+    #  閾值化
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
-        self.retval, self.im = cv2.threshold(self.im, 115, 255, cv2.THRESH_BINARY_INV)
+        self.retval, self.im = cv2.threshold(self.im, 50, 255, cv2.THRESH_BINARY_INV)
         self.dicImg.update({"閾值化": self.im.copy()})
 
-    #  去除雜點
+    #  去噪
     def removeNoise(self):
         for i in xrange(len(self.im)):
             for j in xrange(len(self.im[i])):
@@ -59,7 +59,7 @@ class Image:
 
     #  色調分離
     def posterization(self):
-        n = 3  # Number of levels of quantization
+        n = 4  # Number of levels of quantization
 
         indices = np.arange(0, 256)  # List of all colors
 
@@ -78,7 +78,18 @@ class Image:
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"色調分離": self.im.copy()})
 
-    #  切割圖片
+    #  干擾線檢測
+    def lineDetect(self):
+        laplacian = cv2.Laplacian(self.im, cv2.CV_8UC1)  # Laplacian Edge Detection
+        minLineLength = 1
+        maxLineGap = 1
+        lines = cv2.HoughLinesP(laplacian, 1, np.pi / 180, 1, minLineLength, maxLineGap)
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                cv2.line(self.im, (x1, y1), (x2, y2), (255,255,255))
+        self.dicImg.update({"干擾線檢測": self.im.copy()})
+
+                #  切割圖片
     def splitImg(self):
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
@@ -191,8 +202,9 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
+        # x.lineDetect()
+        x.removeNoise()
         # x.threshold()
-        # x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
