@@ -58,7 +58,7 @@ class Image:
         self.dicImg.update({"去噪": self.im.copy()})
 
     #  色調分離
-    def posterization(self,levels=4):
+    def posterization(self,levels=3):
         n = levels  # Number of levels of quantization
 
         indices = np.arange(0, 256)  # List of all colors
