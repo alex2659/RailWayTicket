@@ -6,6 +6,8 @@ from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
 import collections
 import os, random, sys
+import numpy as np
+
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -24,7 +26,7 @@ class Image:
         #  將每個階段做的圖存起來 用來debug
         self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
-        self.im = cv2.imread(Path + "\\" + ImgName, flags=cv2.IMREAD_GRAYSCALE)
+        self.im = cv2.imread(Path + "\\" + ImgName, cv2.IMREAD_GRAYSCALE)
         self.dicImg.update({"轉灰階": self.im.copy()})
 
 
@@ -54,6 +56,27 @@ class Image:
 
         self.im = cv2.dilate(self.im, (2, 2), iterations=1)
         self.dicImg.update({"去噪": self.im.copy()})
+
+    #  色調分離
+    def posterization(self):
+        n = 3  # Number of levels of quantization
+
+        indices = np.arange(0, 256)  # List of all colors
+
+        divider = np.linspace(0, 255, n + 1)[1]  # we get a divider
+
+        quantiz = np.int0(np.linspace(0, 255, n))  # we get quantization colors
+
+        color_levels = np.clip(np.int0(indices / divider), 0, n - 1)  # color levels 0,1,2..
+
+        palette = quantiz[color_levels]  # Creating the palette
+
+        im2 = palette[self.im]  # Applying palette on image
+
+        self.im = cv2.convertScaleAbs(im2)  # Converting image back to uint8
+        #  存檔
+        #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
+        self.dicImg.update({"色調分離": self.im.copy()})
 
     #  切割圖片
     def splitImg(self):
@@ -164,11 +187,12 @@ class Image:
 
 
 if __name__ == '__main__':
-    for i in range(1):
+    for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
-        x.threshold()
-        x.removeNoise()
-        x.splitImg()
-        x.positiveImg()
+        x.posterization()
+        # x.threshold()
+        # x.removeNoise()
+        # x.splitImg()
+        # x.positiveImg()
         x.showImgEveryStep()
