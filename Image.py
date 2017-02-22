@@ -34,9 +34,12 @@ class Image:
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
+        #  先將顏色加深
+        self.retval, self.im = cv2.threshold(self.im, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        #  再反轉黑白 以利輪廓識別
         self.retval, self.im = cv2.threshold(self.im, 70, 255, cv2.THRESH_BINARY_INV)
         # 存檔
-        # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
+        #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
         self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去噪
