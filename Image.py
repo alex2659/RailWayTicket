@@ -34,9 +34,7 @@ class Image:
     def threshold(self):
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
-        #  先將顏色加深
-        self.retval, self.im = cv2.threshold(self.im, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        #  再反轉黑白 以利輪廓識別
+        # 反轉黑白 以利輪廓識別
         self.retval, self.im = cv2.threshold(self.im, 70, 255, cv2.THRESH_BINARY_INV)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
@@ -85,9 +83,13 @@ class Image:
 
     #  干擾線檢測
     def removeLines(self):
+
+        #  先將顏色加深 方便做線段判斷
+        self.retval, self.im = cv2.threshold(self.im, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
         chop = 6  #  線段長度大於chop 才判斷為干擾線
         threshold = 200 #  用來判斷pixel的顏色
-        lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
+        lineColor = 50  #  將線段設定為黑或白色 255:白 0:黑
         (height, width) = self.im.shape
         #  loop 每一個pixel
         for i in xrange(height):
@@ -95,17 +97,39 @@ class Image:
                 #  如果是黑色點 開始計算線段長度
                 if self.im[i][j] < threshold:
                     countWidth = 0
-                    #  移除橫線
+                    #  移除橫線 在每個像素找尋橫向的像素 如果<threshold 就count+1
                     for c in range(j, width):
                         if self.im[i][c] < threshold:
                             countWidth += 1
                         else:
                             break
+                    #  如果大於指定長度 代表是線段
                     if countWidth >= chop:
                         for c in range(countWidth):
                             try:
+                                #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
                                 if self.im[i+1, j+c] > threshold and self.im[i-1, j+c] > threshold:
                                     self.im[i, j+c] = lineColor
+                                # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
+                                # elif self.im[i+1, j+c] < threshold:
+                                #     count = 0
+                                #     for x in range(j, width):
+                                #         if self.im[i+1][x] < threshold:
+                                #             count += 1
+                                #         else:
+                                #             break
+                                #     if count >= chop:
+                                #         self.im[i, j + c] = lineColor
+                                # elif self.im[i-1, j+c] < threshold:
+                                #     count = 0
+                                #     for x in range(j, width):
+                                #         if self.im[i-1][x] < threshold:
+                                #             count += 1
+                                #         else:
+                                #             break
+                                #     if count >= chop:
+                                #         self.im[i, j + c] = lineColor
+
                             except IndexError:
                                 pass
 
@@ -134,6 +158,18 @@ class Image:
         # 存檔
         # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
+
+    def HoughFindLines(self):
+        edges = cv2.Canny(self.im, 50, 150, apertureSize=3)
+        minLineLength = 6
+        lines = cv2.HoughLinesP(image=edges, rho=1, theta=np.pi / 180, threshold=50, lines=np.array([]),
+                                minLineLength=minLineLength, maxLineGap=2)
+
+        a, b, c = lines.shape
+        for i in range(a):
+            cv2.line(self.im, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), 0, 1)
+        self.dicImg.update({"Hough找直線": self.im.copy()})
+
 
     #  切割圖片
     def splitImg(self):
@@ -251,9 +287,10 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
+        # x.HoughFindLines()
         x.removeLines()
-        x.removeNoise()
-        x.threshold()
-        x.splitImg()
+        # x.removeNoise()
+        # x.threshold()
+        # x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
