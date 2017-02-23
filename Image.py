@@ -54,7 +54,7 @@ class Image:
                             except IndexError:
                                 pass
                     # 這裡 threshold 設 4，當週遭小於 4 個點的話視為雜點
-                    if count <= 4:
+                    if count <= 3:
                         self.im[i][j] = 0
 
         self.im = cv2.dilate(self.im, (2, 2), iterations=1)
@@ -110,7 +110,7 @@ class Image:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
                                 if self.im[i+1, j+c] > threshold and self.im[i-1, j+c] > threshold:
                                     self.im[i, j+c] = lineColor
-                                # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
+                                # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
                                 # elif self.im[i+1, j+c] < threshold:
                                 #     count = 0
                                 #     for x in range(j, width):
@@ -157,7 +157,7 @@ class Image:
 
                     i += countHeight
         # 存檔
-        # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
+        cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     def HoughFindLines(self):
