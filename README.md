@@ -7,6 +7,15 @@
 直接爬訂票頁面會發生錯誤
 爬時刻表網站需要 zLib 解壓縮
 
+目錄架構
+-----------------------------
+DownloadCaptcha.py  下載驗證碼
+Image.py            處理驗證碼
+MainWindow.py       顯示GUI視窗
+TaiwanRailWayUI.py  讓pyqt執行的ui檔
+VPN.py              執行VPN
+
+
 如何安裝
 -----------------------------
 step 1.
@@ -22,6 +31,9 @@ Step2.
 Step3.
     安裝以下package
     conda install -c https://conda.binstar.org/menpo opencv
+    PyQt4
+    selenium
+    下載phantomjs.exe 並將目錄設定到環境變數
 
 Step4.
     設置keras運行環境
