@@ -1,6 +1,8 @@
 # encoding: utf-8
 from PIL import Image, ImageEnhance
 import cv2
+import matplotlib
+matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
@@ -158,19 +160,13 @@ class Image:
 
                     i += countHeight
         # 存檔
-        cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
+        # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
-    def HoughFindLines(self):
-        edges = cv2.Canny(self.im, 50, 150, apertureSize=3)
-        minLineLength = 6
-        lines = cv2.HoughLinesP(image=edges, rho=1, theta=np.pi / 180, threshold=50, lines=np.array([]),
-                                minLineLength=minLineLength, maxLineGap=2)
 
-        a, b, c = lines.shape
-        for i in range(a):
-            cv2.line(self.im, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), 0, 1)
-        self.dicImg.update({"Hough找直線": self.im.copy()})
+    def medianBlur(self):
+        self.im = cv2.medianBlur(self.im, 3)
+        self.dicImg.update({"中值模糊": self.im})
 
 
     #  切割圖片
@@ -284,8 +280,8 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
-        # x.HoughFindLines()
         x.removeLines()
+        x.medianBlur()
         # x.removeNoise()
         # x.threshold()
         # x.splitImg()
