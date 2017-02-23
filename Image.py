@@ -26,8 +26,8 @@ class Image:
         #  將每個階段做的圖存起來 用來debug
         self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
-        self.im = cv2.imread(Path + "\\" + ImgName, cv2.IMREAD_GRAYSCALE)
-        self.dicImg.update({"轉灰階": self.im.copy()})
+        self.im = cv2.imread(Path + "\\" + ImgName)
+        self.dicImg.update({"原始驗證碼": self.im.copy()})
 
 
     #  閾值化
@@ -83,23 +83,24 @@ class Image:
 
     #  干擾線檢測
     def removeLines(self):
-
+        #  將圖片轉灰色
+        grayIm = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
         #  先將顏色加深 方便做線段判斷
-        self.retval, self.im = cv2.threshold(self.im, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        self.retval, binaryImg = cv2.threshold(grayIm, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
         chop = 4  #  線段長度大於chop 才判斷為干擾線
         threshold = 200 #  用來判斷pixel的顏色
         lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
-        (height, width) = self.im.shape
+        (height, width) = binaryImg.shape
         #  loop 每一個pixel
         for i in xrange(height):
             for j in xrange(width):
                 #  如果是黑色點 開始計算線段長度
-                if self.im[i][j] < threshold:
+                if binaryImg[i][j] < threshold:
                     countWidth = 0
                     #  移除橫線 在每個像素找尋橫向的像素 如果<threshold 就count+1
                     for c in range(j, width):
-                        if self.im[i][c] < threshold:
+                        if binaryImg[i][c] < threshold:
                             countWidth += 1
                         else:
                             break
@@ -108,7 +109,7 @@ class Image:
                         for c in range(countWidth):
                             try:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
-                                if self.im[i+1, j+c] > threshold and self.im[i-1, j+c] > threshold:
+                                if binaryImg[i+1, j+c] > threshold and binaryImg[i-1, j+c] > threshold:
                                     self.im[i, j+c] = lineColor
                                 # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
                                 # elif self.im[i+1, j+c] < threshold:
@@ -138,18 +139,18 @@ class Image:
         for j in xrange(width):
             for i in xrange(height):
                 #  如果是黑色點 開始計算線段長度
-                if self.im[i][j] < threshold:
+                if binaryImg[i][j] < threshold:
                     countHeight = 0
                     #  移除橫線
                     for c in range(i, height):
-                        if self.im[c][j] < threshold:
+                        if binaryImg[c][j] < threshold:
                             countHeight += 1
                         else:
                             break
                     if countHeight >= chop:
                         for c in range(countHeight):
                             try:
-                                if self.im[i + c, j + 1] > threshold and self.im[i + c, j - 1] > threshold:
+                                if binaryImg[i + c, j + 1] > threshold and binaryImg[i + c, j - 1] > threshold:
                                     self.im[i + c, j] = lineColor
                             except IndexError:
                                     self.im[i + c, j] = lineColor
@@ -256,23 +257,18 @@ class Image:
         if diclength > 0:
             fig = plt.figure(figsize=(10, 10))
             gs = gridspec.GridSpec(diclength+1, 6)
-            # 第一列 原始驗證碼的圖片
-            ax1 = fig.add_subplot(gs[0, :6])
-            originImg = cv2.imread(self.Path + "\\" + self.imageName)
-            ax1.imshow(originImg, interpolation='nearest')
-            ax1.set_title('原始驗證碼', fontproperties=self.font)
 
             # 依序列出dict物件裡的圖片
             for index, key in enumerate(self.dicImg):
                 #  如果不是list物件 就是圖片 可以呼叫imshow
                 if not isinstance(self.dicImg[key], list):
-                    ax = fig.add_subplot(gs[index+1, :6])
+                    ax = fig.add_subplot(gs[index, :6])
                     ax.imshow(self.dicImg[key], interpolation='nearest')
                     ax.set_title(key, fontproperties=self.font)
                 else:
                     try:
                         for i, img in enumerate(self.dicImg[key]):
-                            ax = fig.add_subplot(gs[index+1, i])
+                            ax = fig.add_subplot(gs[index, i])
                             ax.imshow(img, interpolation='nearest')
                     except IndexError:
                         pass
