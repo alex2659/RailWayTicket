@@ -229,7 +229,7 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.cb_Go_Kind, self.cb_Go_Num)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "台鐵自動訂票助手", None))
         self.lbID.setText(_translate("MainWindow", "身份證字號：", None))
         self.groupBoxGo.setTitle(_translate("MainWindow", "【出發／單程】", None))
         self.lb_Go_StartStation.setText(_translate("MainWindow", "起站：", None))
