@@ -280,11 +280,13 @@ class Ui_MainWindow(object):
     # 為日期下拉選單產生資料
     def cbDateAddItem(self,cb):
         date = datetime.datetime.now()
+        strDate = date.date().strftime('%Y/%m/%d')
         dateOfWeek =['一','二','三','四','五','六','日']
-        cb.addItem(date.date().strftime('%Y/%m/%d')+' ('+self.translate(dateOfWeek[date.date().weekday()])+')')
+        cb.addItem(strDate+' ('+self.translate(dateOfWeek[date.date().weekday()])+')',strDate + '-00')
         for i in range(16):
             date += datetime.timedelta(days=1)
-            cb.addItem(date.date().strftime('%Y/%m/%d')+' ('+self.translate(dateOfWeek[date.date().weekday()])+')')
+            strDate = date.date().strftime('%Y/%m/%d')
+            cb.addItem(strDate +' ('+self.translate(dateOfWeek[date.date().weekday()])+')', strDate + '-' + str(i+1).zfill(2))
 
     # 產生車站下拉選單的資料
     def cbStationAddItem(self,cb):
