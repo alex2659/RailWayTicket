@@ -37,7 +37,9 @@ class Image:
         # 115 是 threshold，越高濾掉越多
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         # 反轉黑白 以利輪廓識別
-        self.retval, self.im = cv2.threshold(self.im, 70, 255, cv2.THRESH_BINARY_INV)
+        gray_image = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
+        self.dicImg.update({"gray": gray_image})
+        self.retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY_INV)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
         self.dicImg.update({"閾值化": self.im.copy()})
@@ -84,7 +86,7 @@ class Image:
         self.dicImg.update({"色調分離": self.im.copy()})
 
     #  干擾線檢測
-    def removeLines(self):
+    def removeBlackLines(self):
         chop = 4  #  線段長度大於chop 才判斷為干擾線
         lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
         (height, width,_) = self.im.shape
@@ -106,7 +108,7 @@ class Image:
                             try:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
                                 if self.CheckPixelIsWhite(self.im[i+1, j+c]) and self.CheckPixelIsWhite(self.im[i-1, j+c]):
-                                    self.im[i, j+c] = lineColor
+                                    self.im[i, j+c] = self.im[i-1:i+1, j+c,2].mean()
                                 # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
                                 # elif self.im[i+1, j+c] < threshold:
                                 #     count = 0
@@ -128,7 +130,7 @@ class Image:
                                 #         self.im[i, j + c] = lineColor
 
                             except IndexError:
-                                self.im[i, j + c] = lineColor
+                                self.im[i, j + c] = self.im[i-1:i+1, j+c,2].mean()
 
                     j += countWidth
         #  loop 每一個pixel
@@ -147,10 +149,9 @@ class Image:
                         for c in range(countHeight):
                             try:
                                 if self.CheckPixelIsWhite(self.im[i + c, j + 1]) and self.CheckPixelIsWhite(self.im[i + c, j - 1]):
-                                    self.im[i + c, j] = lineColor
+                                    self.im[i + c, j] = self.im[i + c, j-1:j + 1,2].mean()
                             except IndexError:
-                                    self.im[i + c, j] = lineColor
-                                    pass
+                                    self.im[i + c, j] =self.im[i + c, j-1:j + 1,2].mean()
 
                     i += countHeight
         # 存檔
@@ -177,7 +178,7 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
-        self.im = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
+        # self.im = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
@@ -286,9 +287,9 @@ if __name__ == '__main__':
     for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
-        # x.posterization()
-        x.removeLines()
+        x.removeBlackLines()
         # x.medianBlur()
+        # x.posterization()
         # x.removeNoise()
         # x.threshold()
         # x.splitImg()
