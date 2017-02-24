@@ -290,6 +290,7 @@ if __name__ == '__main__':
         x.medianBlur()
         x.posterization()
         x.threshold()
+        # x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
