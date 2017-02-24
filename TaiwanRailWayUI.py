@@ -8,6 +8,7 @@
 
 from PyQt4 import QtCore, QtGui
 import datetime,json,sys,io
+from BuyTicket import BuyTicket
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -29,6 +30,15 @@ class Ui_MainWindow(object):
         MainWindow.resize(628, 401)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+
+
+        self.groupBoxGo = QtGui.QGroupBox(self.centralwidget)
+        self.groupBoxGo.setGeometry(QtCore.QRect(0, 70, 231, 301))
+        self.groupBoxGo.setObjectName(_fromUtf8("groupBoxGo"))
+
+        # =================================================================
+        # 操作列
+        # ================================================================
         #  身份證字號
         self.lbID = QtGui.QLabel(self.centralwidget)
         self.lbID.setGeometry(QtCore.QRect(10, 20, 81, 31))
@@ -40,9 +50,16 @@ class Ui_MainWindow(object):
         self.textID.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.textID.setObjectName(_fromUtf8("textID"))
 
-        self.groupBoxGo = QtGui.QGroupBox(self.centralwidget)
-        self.groupBoxGo.setGeometry(QtCore.QRect(0, 70, 231, 301))
-        self.groupBoxGo.setObjectName(_fromUtf8("groupBoxGo"))
+        # 開始訂票按鈕
+        self.pushButton = QtGui.QPushButton(self.centralwidget)
+        self.pushButton.setGeometry(QtCore.QRect(380, 10, 81, 51))
+        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.pushButton.clicked.connect(lambda: self.Start(MainWindow))
+        # 是否為來回票checkbox
+        self.ckIsTwoWay = QtGui.QCheckBox(self.centralwidget)
+        self.ckIsTwoWay.setGeometry(QtCore.QRect(250, 20, 101, 16))
+        self.ckIsTwoWay.setObjectName(_fromUtf8("ckIsTwoWay"))
+
 
         #  ===============================================
         #                            去程
@@ -172,15 +189,6 @@ class Ui_MainWindow(object):
         self.cb_Back_Num.setObjectName(_fromUtf8("cb_Back_Num"))
         self.cbNumAddItem(self.cb_Back_Num)
 
-        # 開始訂票按鈕
-        self.pushButton = QtGui.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(380, 10, 81, 51))
-        self.pushButton.setObjectName(_fromUtf8("pushButton"))
-        # 是否為來回票checkbox
-        self.ckIsTwoWay = QtGui.QCheckBox(self.centralwidget)
-        self.ckIsTwoWay.setGeometry(QtCore.QRect(250, 20, 101, 16))
-        self.ckIsTwoWay.setObjectName(_fromUtf8("ckIsTwoWay"))
-
         # ======================================================
         #                           結果
         # ======================================================
@@ -295,8 +303,10 @@ class Ui_MainWindow(object):
             print('File Error: ' + str(ioerr))
 
 
-
-
+    # 將這視窗的內容pass到台鐵爬蟲 開始訂票程序
+    def Start(self,mainWindow):
+        do = BuyTicket(mainWindow)
+        do.Start()
 
 
     #  將字串翻成中文 避免亂碼
