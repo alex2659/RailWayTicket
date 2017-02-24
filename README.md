@@ -9,11 +9,15 @@
 
 目錄架構
 -----------------------------
+BuyTicket.py        買票爬蟲
 DownloadCaptcha.py  下載驗證碼
 Image.py            處理驗證碼
 MainWindow.py       顯示GUI視窗
+station.json        存放台鐵車站代碼
 TaiwanRailWayUI.py  讓pyqt執行的ui檔
+TrainningCNN.py     訓練CNN模型
 VPN.py              執行VPN
+
 
 
 如何安裝
