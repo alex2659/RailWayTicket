@@ -171,6 +171,7 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
+        self.im = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
@@ -279,9 +280,9 @@ if __name__ == '__main__':
     for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
-        x.posterization()
+        # x.posterization()
         x.removeLines()
-        x.medianBlur()
+        # x.medianBlur()
         # x.removeNoise()
         # x.threshold()
         # x.splitImg()
