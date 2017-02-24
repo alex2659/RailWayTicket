@@ -1,6 +1,8 @@
 # encoding: utf-8
 import requests
 from PIL import Image
+import numpy
+import cv2
 from StringIO import StringIO
 from PyQt4 import QtCore, QtGui
 
@@ -68,8 +70,14 @@ class BuyTicket:
         # print(result.text)
         # 取得驗證碼圖片
         req = s.get('http://railway.hinet.net/ImageOut.jsp')
-        i = Image.open(StringIO(req.content))
-        i.save(r'C:\Users\vi000\Desktop\123.jpg')
+        # 將圖片轉成openCV能開啟的格式
+        pil_image = Image.open(StringIO(req.content)).convert('RGB')
+        open_cv_image = numpy.array(pil_image)
+        open_cv_image = open_cv_image[:, :, ::-1].copy()
+        cv2.imshow('image', open_cv_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
         var = raw_input("請輸入驗證碼: ")
         print('您輸入的驗證碼是'+ var)
 
