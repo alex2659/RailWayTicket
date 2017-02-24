@@ -85,24 +85,18 @@ class Image:
 
     #  干擾線檢測
     def removeLines(self):
-        #  將圖片轉灰色
-        grayIm = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
-        #  先將顏色加深 方便做線段判斷
-        self.retval, binaryImg = cv2.threshold(grayIm, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-
         chop = 4  #  線段長度大於chop 才判斷為干擾線
-        threshold = 200 #  用來判斷pixel的顏色
         lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
-        (height, width) = binaryImg.shape
+        (height, width,_) = self.im.shape
         #  loop 每一個pixel
         for i in xrange(height):
             for j in xrange(width):
                 #  如果是黑色點 開始計算線段長度
-                if binaryImg[i][j] < threshold:
+                if self.CheckPixelIsBlack(self.im[i][j]):
                     countWidth = 0
                     #  移除橫線 在每個像素找尋橫向的像素 如果<threshold 就count+1
                     for c in range(j, width):
-                        if binaryImg[i][c] < threshold:
+                        if self.CheckPixelIsBlack(self.im[i][c]):
                             countWidth += 1
                         else:
                             break
@@ -111,7 +105,7 @@ class Image:
                         for c in range(countWidth):
                             try:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
-                                if binaryImg[i+1, j+c] > threshold and binaryImg[i-1, j+c] > threshold:
+                                if self.CheckPixelIsWhite(self.im[i+1, j+c]) and self.CheckPixelIsWhite(self.im[i-1, j+c]):
                                     self.im[i, j+c] = lineColor
                                 # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
                                 # elif self.im[i+1, j+c] < threshold:
@@ -141,18 +135,18 @@ class Image:
         for j in xrange(width):
             for i in xrange(height):
                 #  如果是黑色點 開始計算線段長度
-                if binaryImg[i][j] < threshold:
+                if self.CheckPixelIsBlack(self.im[i][j]):
                     countHeight = 0
                     #  移除橫線
                     for c in range(i, height):
-                        if binaryImg[c][j] < threshold:
+                        if self.CheckPixelIsBlack(self.im[c][j]):
                             countHeight += 1
                         else:
                             break
                     if countHeight >= chop:
                         for c in range(countHeight):
                             try:
-                                if binaryImg[i + c, j + 1] > threshold and binaryImg[i + c, j - 1] > threshold:
+                                if self.CheckPixelIsWhite(self.im[i + c, j + 1]) and self.CheckPixelIsWhite(self.im[i + c, j - 1]):
                                     self.im[i + c, j] = lineColor
                             except IndexError:
                                     self.im[i + c, j] = lineColor
@@ -163,6 +157,18 @@ class Image:
         # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
+    #  傳入RGB的pixel 判斷是否是黑點
+    def CheckPixelIsBlack(self, pixel, min= 70,max= 180):
+        return self.CheckPixelColor(pixel,min,max)
+    #  傳入RGB的pixel 判斷是否是白點
+    def CheckPixelIsWhite(self, pixel, min= 160,max= 255):
+        return self.CheckPixelColor(pixel, min, max)
+
+    def CheckPixelColor(self,pixel, min ,max ):
+        if  min< pixel[0] < max and min< pixel[1] < max and min < pixel[2] < max:
+            return True
+        else:
+            return False
 
     def medianBlur(self):
         self.im = cv2.medianBlur(self.im, 3)
