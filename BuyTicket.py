@@ -9,7 +9,7 @@ from PyQt4 import QtCore, QtGui
 class BuyTicket:
     def __init__(self, mainWindow):
         # 身份證字號
-        self.ID = mainWindow.textID.toPlainText()
+        self.ID = str(mainWindow.textID.toPlainText())
         # 是否為來回票
         self.IsTwoWay = mainWindow.ckIsTwoWay.isChecked()
 
@@ -45,29 +45,24 @@ class BuyTicket:
 
 
     def Start(self):
+        # ==================
+        # 輸入基本資料頁
+        # ==================
         url = 'http://railway.hinet.net/check_ctkind2.jsp'
         headers = {'Content-Type': 'application/x-www-form-urlencoded',
                    'Referer': 'http://railway.hinet.net/ctkind2.htm'
                   }
-        data = {"person_id": self.ID,#身份證字號
-                "from_station": self.Go_sStation,#起站
-                "to_station":self.Go_eStation,#迄站
-                "getin_date":self.Go_Date, #去程乘車日期
-                "getin_date2":self.Back_Date,#回程乘車日期
-                "order_qty_str":self.Go_Num,#去程訂票張數
-                "order_qty_str2":self.Back_Num,#回程訂票張數
-                "train_type":self.Go_Kind,#去程車種
-                "train_type2":self.Back_Kind,#回程車種
-                "getin_start_dtime":self.Go_sTime,#去程起始時間
-                "getin_start_dtime2":self.Back_sTime,#回程起始時間
-                "getin_end_dtime":self.Go_eTime,#去程截止時間
-                "getin_end_dtime2":self.Back_eTime,#回程截止時間
-                "returnTicket":"0" #似乎是CSRF token
-               }
+        # 取得post的參數
+        data = self.GetQueryData()
         s = requests.Session()
         result = s.post(url,data=data, headers=headers)
         result.encoding = 'big5'
         # print(result.text)
+
+        # =====================
+        # 填寫驗證碼頁面
+        # =====================
+
         # 取得驗證碼圖片
         req = s.get('http://railway.hinet.net/ImageOut.jsp')
         # 將圖片轉成openCV能開啟的格式
@@ -81,17 +76,25 @@ class BuyTicket:
         var = raw_input("請輸入驗證碼: ")
         print('您輸入的驗證碼是'+ var)
 
-        #=========================
-        # 輸入驗證碼
-        # ========================
-        url = 'http://railway.hinet.net/ctkind2_result.jsp'
-        # 將query string加上驗證碼
-        data.update({'randInput':var})
 
+        # ===============================
+        # 訂票結果
+        # ===============================
+
+        # 去程訂票結果
+
+        url = 'http://railway.hinet.net/order_kind1.jsp'
+        # 將query string加上驗證碼
+        data = self.GetQueryData(type=2, returnTicket=1, randInput=var)
         result = s.get(url, params= data, headers=headers)
         result.encoding = 'big5-hkscs'
-        print(result.text)
+        # print(result.text)
 
+        #  回程訂票結果
+        data = self.GetQueryData(type=2, returnTicket=2, randInput=var)
+        result = s.get(url, params=data, headers=headers)
+        result.encoding = 'big5-hkscs'
+        print(result.text)
 
 
     # 印出所有參數 Debug用
@@ -102,3 +105,38 @@ class BuyTicket:
     # 取得combobox的value
     def GetComboboxValue(self, cb):
         return str(cb.itemData(cb.currentIndex()).toPyObject())
+
+    # 傳回post或get需要的參數
+    # type 1:訂來回票 包括去回程的參數 第一個頁面用的
+    #      2:result頁裡的iframe用的 依據returnTicket判斷是單程、回程、去程  1:去程 2:回程 0:單程
+    def GetQueryData(self,type=1,returnTicket=0,randInput=None):
+        data = {}
+        if type == 1:
+            data = {"person_id": self.ID,#身份證字號
+                    "from_station": self.Go_sStation,#起站
+                    "to_station":self.Go_eStation,#迄站
+                    "getin_date":self.Go_Date, #去程乘車日期
+                    "getin_date2":self.Back_Date,#回程乘車日期
+                    "order_qty_str":self.Go_Num,#去程訂票張數
+                    "order_qty_str2":self.Back_Num,#回程訂票張數
+                    "train_type":self.Go_Kind,#去程車種
+                    "train_type2":self.Back_Kind,#回程車種
+                    "getin_start_dtime":self.Go_sTime,#去程起始時間
+                    "getin_start_dtime2":self.Back_sTime,#回程起始時間
+                    "getin_end_dtime":self.Go_eTime,#去程截止時間
+                    "getin_end_dtime2":self.Back_eTime,#回程截止時間
+                    "returnTicket": returnTicket #似乎是CSRF token
+                   }
+        elif type == 2:
+            data = {"person_id": self.ID,  # 身份證字號
+                    "from_station": self.Go_sStation if returnTicket is not 2 else self.Back_sStation,  # 起站
+                    "to_station": self.Go_eStation if returnTicket is not 2 else self.Back_eStation,  # 迄站
+                    "getin_date": self.Go_Date if returnTicket is not 2 else self.Back_Num,  # 去程乘車日期
+                    "order_qty_str": self.Go_Num if returnTicket is not 2 else self.Back_Num,  # 去程訂票張數
+                    "train_type": self.Go_Kind if returnTicket is not 2 else self.Back_Kind,  # 去程車種
+                    "getin_start_dtime": self.Go_sTime if returnTicket is not 2 else self.Back_sTime,  # 去程起始時間
+                    "getin_end_dtime": self.Go_eTime if returnTicket is not 2 else self.Back_eTime,  # 去程截止時間
+                    "returnTicket": returnTicket,  # 似乎是CSRF token
+                    "randInput": randInput
+                    }
+        return data
