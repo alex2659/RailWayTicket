@@ -47,12 +47,12 @@ class Image:
     def removeNoise(self):
         for i in xrange(len(self.im)):
             for j in xrange(len(self.im[i])):
-                if self.im[i][j] == 255:
+                if self.CheckPixelIsBlack(self.im[i][j]):
                     count = 0
                     for k in range(-2, 3):
                         for l in range(-2, 3):
                             try:
-                                if self.im[i + k][j + l] == 255:
+                                if self.CheckPixelIsBlack(self.im[i + k][j + l]):
                                     count += 1
                             except IndexError:
                                 pass
@@ -107,7 +107,8 @@ class Image:
                             try:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
                                 if self.CheckPixelIsWhite(self.im[i+1, j+c]) and self.CheckPixelIsWhite(self.im[i-1, j+c]):
-                                    self.im[i, j+c] = self.im[i-1:i+1, j+c,2].mean()
+                                    # self.im[i, j+c] = self.im[i-1:i+1, j+c,2].mean()
+                                    self.im[i, j + c] =lineColor
                                 # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
                                 # elif self.im[i+1, j+c] < threshold:
                                 #     count = 0
@@ -129,7 +130,8 @@ class Image:
                                 #         self.im[i, j + c] = lineColor
 
                             except IndexError:
-                                self.im[i, j + c] = self.im[i-1:i+1, j+c,2].mean()
+                                # self.im[i, j + c] = self.im[i-1:i+1, j+c,2].mean()
+                                self.im[i, j + c] = lineColor
 
                     j += countWidth
         #  loop 每一個pixel
@@ -148,9 +150,11 @@ class Image:
                         for c in range(countHeight):
                             try:
                                 if self.CheckPixelIsWhite(self.im[i + c, j + 1]) and self.CheckPixelIsWhite(self.im[i + c, j - 1]):
-                                    self.im[i + c, j] = self.im[i + c, j-1:j + 1,2].mean()
+                                    # self.im[i + c, j] = self.im[i + c, j-1:j + 1,2].mean()
+                                    self.im[i + c, j] =lineColor
                             except IndexError:
-                                    self.im[i + c, j] =self.im[i + c, j-1:j + 1,2].mean()
+                                    # self.im[i + c, j] =self.im[i + c, j-1:j + 1,2].mean()
+                                    self.im[i + c, j] = lineColor
 
                     i += countHeight
         # 存檔
@@ -158,14 +162,14 @@ class Image:
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     #  傳入RGB的pixel 判斷是否是黑點
-    def CheckPixelIsBlack(self, pixel, min= 70,max= 180):
+    def CheckPixelIsBlack(self, pixel, min= 0,max= 230):
         return self.CheckPixelColor(pixel,min,max)
     #  傳入RGB的pixel 判斷是否是白點
     def CheckPixelIsWhite(self, pixel, min= 160,max= 255):
         return self.CheckPixelColor(pixel, min, max)
 
     def CheckPixelColor(self,pixel, min ,max ):
-        if  min< pixel[0] < max and min< pixel[1] < max and min < pixel[2] < max:
+        if  min<= pixel[0] <= max and min<= pixel[1] <= max and min <= pixel[2] <= max:
             return True
         else:
             return False
@@ -281,16 +285,16 @@ class Image:
         else:
             print '圖片數字陣列為空'
 
-
+# 目前步驟 1.色調分離 濾掉背景色 2.移除黑線
 if __name__ == '__main__':
     for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
-        x.removeBlackLines()
-        x.medianBlur()
         x.posterization()
-        x.threshold()
-        # x.removeNoise()
+        x.removeBlackLines()
+        # x.medianBlur()
+        # x.threshold()
+        x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
