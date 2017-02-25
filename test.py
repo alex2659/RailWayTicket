@@ -1,2 +1,2 @@
-i=1
-print(str(i+1))
+
+print(str if str != None else 'error!!')
