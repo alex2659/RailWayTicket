@@ -41,10 +41,14 @@ class FormWidget(QtGui.QWidget):
         self.leftLayout.addWidget(self.lbID,0,0)
         self.textID = QtGui.QLineEdit()
         self.textID.setObjectName(u"textID")
+        reg_ex = QtCore.QRegExp("^[A-Za-z]{1}[12]{1}[0-9]{8}$")
+        textID_validator = QtGui.QRegExpValidator(reg_ex, self)
+        self.textID.setValidator(textID_validator)
         self.leftLayout.addWidget(self.textID,0,1)
 
         self.submitBtn = QtGui.QPushButton(u'開始訂票')
         self.submitBtn.setFixedSize(70,70)
+        self.submitBtn.clicked.connect(lambda: self.Start(self))
         self.leftLayout.addWidget(self.submitBtn,0,3,2,2)
 
         self.lb_StartStation = QtGui.QLabel(u'起站代碼')
@@ -58,10 +62,6 @@ class FormWidget(QtGui.QWidget):
         self.cb_EndStation = QtGui.QComboBox()
         self.cbStationAddItem(self.cb_EndStation)
         self.leftLayout.addWidget(self.cb_EndStation,2,1,1,1)
-
-        # self.isTwoWay = QtGui.QCheckBox(u'是否為來回票')
-        # self.isTwoWay.setChecked(True)
-        # self.leftLayout.addWidget(self.isTwoWay,3,3,1,3)
 
         # =============ticketInfo Layout 用來放置去回程的控件
         self.TicketInfolayout = QtGui.QGridLayout()
@@ -149,9 +149,11 @@ class FormWidget(QtGui.QWidget):
 
 
         # ====================設定右方layout====================
-        self.rightLayout = QtGui.QVBoxLayout()
-        self.groupBox=QtGui.QGroupBox()
-        self.rightLayout.addWidget(self.groupBox)
+        self.rightLayout = QtGui.QGridLayout()
+        self.captchaPic = QtGui.QLabel()
+        self.captchaPic.setFixedSize(250,150)
+        self.rightLayout.addWidget(self.captchaPic,0,0,1,5)
+
 
 
 
@@ -226,7 +228,10 @@ class FormWidget(QtGui.QWidget):
         <p>僅供學術交流用途，請勿從事非法活動</p>
         <p>需求環境：請參閱Readme.md</p>
                                 """)
-
+    # 將這視窗的內容pass到台鐵爬蟲 開始訂票程序
+    def Start(self,mainWindow):
+        do = BuyTicket(mainWindow)
+        do.Start()
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
