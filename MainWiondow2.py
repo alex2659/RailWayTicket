@@ -43,9 +43,52 @@ class FormWidget(QtGui.QWidget):
         self.textID.setObjectName(u"textID")
         self.leftLayout.addWidget(self.textID,0,1)
 
+        self.submitBtn = QtGui.QPushButton(u'開始訂票')
+        self.submitBtn.setFixedSize(70,70)
+        self.leftLayout.addWidget(self.submitBtn,0,3,2,2)
+
+        self.lb_StartStation = QtGui.QLabel(u'起站代碼')
+        self.leftLayout.addWidget(self.lb_StartStation,1,0,1,1)
+        self.cb_StartStation = QtGui.QComboBox()
+        self.leftLayout.addWidget(self.cb_StartStation,1,1,1,1)
+
+        self.lb_EndStation = QtGui.QLabel(u'到站代碼')
+        self.leftLayout.addWidget(self.lb_EndStation,2,0,1,1)
+        self.cb_EndStation = QtGui.QComboBox()
+        self.leftLayout.addWidget(self.cb_EndStation,2,1,1,1)
+
+        # self.isTwoWay = QtGui.QCheckBox(u'是否為來回票')
+        # self.isTwoWay.setChecked(True)
+        # self.leftLayout.addWidget(self.isTwoWay,3,3,1,3)
+
         # ticketInfo Layout 用來放置去回程的控件
         self.TicketInfolayout = QtGui.QGridLayout()
-        self.leftLayout.addLayout(self.TicketInfolayout,0,2)
+        self.leftLayout.addLayout(self.TicketInfolayout,4,0,10,5)
+
+        # 設定位在ticketInfo裡的出發layout
+        self.GoLayout = QtGui.QGroupBox()
+        self.GoLayout.setTitle(u'【出發／單程】')
+        vbox = QtGui.QGridLayout()
+        self.lb_Go_Date = QtGui.QLabel(u'乘車日期')
+        vbox.addWidget(self.lb_Go_Date,0,0,1,2)
+        self.cb_Go_Date = QtGui.QComboBox()
+        vbox.addWidget(self.cb_Go_Date,0,3,1,2)
+        self.GoLayout.setLayout(vbox)
+        self.TicketInfolayout.addWidget(self.GoLayout,0,0,1,3)
+
+        # 設定位在ticketInfo裡的回程layout
+        self.BackLayout = QtGui.QGroupBox()
+        self.BackLayout.setTitle(u'【回程】')
+        backBox = QtGui.QGridLayout()
+        self.lb_Back_Date = QtGui.QLabel(u'乘車日期')
+        backBox.addWidget(self.lb_Back_Date,0,0)
+        self.cb_Back_Date = QtGui.QComboBox()
+        backBox.addWidget(self.cb_Back_Date,0,1)
+        self.BackLayout.setLayout(backBox)
+        self.TicketInfolayout.addWidget(self.BackLayout,0,3,1,3)
+
+
+
 
 
         # ====================設定右方layout====================
