@@ -10,6 +10,15 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle(u'台鐵訂票助手')
+        
+        app_icon = QtGui.QIcon()
+        app_icon.addFile('img/train.png', QtCore.QSize(16, 16))
+        app_icon.addFile('img/train.png', QtCore.QSize(24, 24))
+        app_icon.addFile('img/train.png', QtCore.QSize(32, 32))
+        app_icon.addFile('img/train.png', QtCore.QSize(48, 48))
+        app_icon.addFile('img/train.png', QtCore.QSize(256, 256))
+        self.setWindowIcon(app_icon)
+
         self.form_widget = FormWidget(self)
         self.font_size = 12
         font_label_standard = QtGui.QFont('微軟正黑體', self.font_size)
@@ -36,7 +45,6 @@ class FormWidget(QtGui.QWidget):
 
         # ====================設定左邊layout 用來呈現訂票介面 裡面包含ticketInfo Layout====================
         self.leftLayout = QtGui.QGridLayout()
-
 
         # =============設定left layout的上方控件
         self.lbID = QtGui.QLabel( u"身份證字號：")
