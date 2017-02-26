@@ -35,7 +35,7 @@ class FormWidget(QtGui.QWidget):
         self.leftLayout = QtGui.QGridLayout()
 
 
-        # 設定left layout的上方控件
+        # =============設定left layout的上方控件
         self.lbID = QtGui.QLabel( u"身份證字號：")
         self.lbID.setObjectName(u"lbID")
         self.leftLayout.addWidget(self.lbID,0,0)
@@ -50,40 +50,97 @@ class FormWidget(QtGui.QWidget):
         self.lb_StartStation = QtGui.QLabel(u'起站代碼')
         self.leftLayout.addWidget(self.lb_StartStation,1,0,1,1)
         self.cb_StartStation = QtGui.QComboBox()
+        self.cbStationAddItem(self.cb_StartStation)
         self.leftLayout.addWidget(self.cb_StartStation,1,1,1,1)
 
         self.lb_EndStation = QtGui.QLabel(u'到站代碼')
         self.leftLayout.addWidget(self.lb_EndStation,2,0,1,1)
         self.cb_EndStation = QtGui.QComboBox()
+        self.cbStationAddItem(self.cb_EndStation)
         self.leftLayout.addWidget(self.cb_EndStation,2,1,1,1)
 
         # self.isTwoWay = QtGui.QCheckBox(u'是否為來回票')
         # self.isTwoWay.setChecked(True)
         # self.leftLayout.addWidget(self.isTwoWay,3,3,1,3)
 
-        # ticketInfo Layout 用來放置去回程的控件
+        # =============ticketInfo Layout 用來放置去回程的控件
         self.TicketInfolayout = QtGui.QGridLayout()
         self.leftLayout.addLayout(self.TicketInfolayout,4,0,10,5)
 
-        # 設定位在ticketInfo裡的出發layout
+        # =============設定位在ticketInfo裡的出發layout
         self.GoLayout = QtGui.QGroupBox()
         self.GoLayout.setTitle(u'【出發／單程】')
         vbox = QtGui.QGridLayout()
+
         self.lb_Go_Date = QtGui.QLabel(u'乘車日期')
         vbox.addWidget(self.lb_Go_Date,0,0,1,2)
         self.cb_Go_Date = QtGui.QComboBox()
+        self.cbDateAddItem(self.cb_Go_Date)
         vbox.addWidget(self.cb_Go_Date,0,3,1,2)
+
+        self.lb_Go_Num = QtGui.QLabel(u'訂票張數')
+        vbox.addWidget(self.lb_Go_Num,1,0,1,2)
+        self.cb_Go_Num = QtGui.QComboBox()
+        self.cbNumAddItem(self.cb_Go_Num)
+        vbox.addWidget(self.cb_Go_Num,1,3,1,1)
+
+        self.lb_Go_Kind = QtGui.QLabel(u'車種')
+        vbox.addWidget(self.lb_Go_Kind,2,0,1,2)
+        self.cb_Go_Kind = QtGui.QComboBox()
+        self.cbKindAddItem(self.cb_Go_Kind)
+        vbox.addWidget(self.cb_Go_Kind,2,3,1,2)
+
+        self.lb_Go_StartTime = QtGui.QLabel(u'起始時間')
+        vbox.addWidget(self.lb_Go_StartTime, 3, 0, 1, 2)
+        self.cb_Go_StartTime = QtGui.QComboBox()
+        self.cbTimeAddItem(self.cb_Go_StartTime)
+        vbox.addWidget(self.cb_Go_StartTime, 3, 3, 1, 1)
+
+        self.lb_Go_EndTime = QtGui.QLabel(u'截止時間')
+        vbox.addWidget(self.lb_Go_EndTime, 4, 0, 1, 2)
+        self.cb_Go_EndTime = QtGui.QComboBox()
+        self.cbTimeAddItem(self.cb_Go_EndTime)
+        vbox.addWidget(self.cb_Go_EndTime, 4, 3, 1, 1)
+
         self.GoLayout.setLayout(vbox)
         self.TicketInfolayout.addWidget(self.GoLayout,0,0,1,3)
 
-        # 設定位在ticketInfo裡的回程layout
+        # =============設定位在ticketInfo裡的回程layout
         self.BackLayout = QtGui.QGroupBox()
         self.BackLayout.setTitle(u'【回程】')
+        self.BackLayout.setCheckable(True)
         backBox = QtGui.QGridLayout()
+
         self.lb_Back_Date = QtGui.QLabel(u'乘車日期')
-        backBox.addWidget(self.lb_Back_Date,0,0)
+        backBox.addWidget(self.lb_Back_Date,0,0,1,2)
         self.cb_Back_Date = QtGui.QComboBox()
-        backBox.addWidget(self.cb_Back_Date,0,1)
+        self.cbDateAddItem(self.cb_Back_Date)
+        backBox.addWidget(self.cb_Back_Date,0,3,1,2)
+
+        self.lb_Back_Num = QtGui.QLabel(u'訂票張數')
+        backBox.addWidget(self.lb_Back_Num,1,0,1,2)
+        self.cb_Back_Num = QtGui.QComboBox()
+        self.cbNumAddItem(self.cb_Back_Num)
+        backBox.addWidget(self.cb_Back_Num,1,3,1,1)
+
+        self.lb_Back_Kind = QtGui.QLabel(u'車種')
+        backBox.addWidget(self.lb_Back_Kind,2,0,1,2)
+        self.cb_Back_Kind = QtGui.QComboBox()
+        self.cbKindAddItem(self.cb_Back_Kind)
+        backBox.addWidget(self.cb_Back_Kind,2,3,1,2)
+
+        self.lb_Back_StartTime = QtGui.QLabel(u'起始時間')
+        backBox.addWidget(self.lb_Back_StartTime, 3, 0, 1, 2)
+        self.cb_Back_StartTime = QtGui.QComboBox()
+        self.cbTimeAddItem(self.cb_Back_StartTime)
+        backBox.addWidget(self.cb_Back_StartTime, 3, 3, 1, 1)
+
+        self.lb_Back_EndTime = QtGui.QLabel(u'截止時間')
+        backBox.addWidget(self.lb_Back_EndTime, 4, 0, 1, 2)
+        self.cb_Back_EndTime = QtGui.QComboBox()
+        self.cbTimeAddItem(self.cb_Back_EndTime)
+        backBox.addWidget(self.cb_Back_EndTime, 4, 3, 1, 1)
+
         self.BackLayout.setLayout(backBox)
         self.TicketInfolayout.addWidget(self.BackLayout,0,3,1,3)
 
@@ -122,10 +179,10 @@ class FormWidget(QtGui.QWidget):
 
     #  為車種下拉選單產生data
     def cbKindAddItem(self, cb):
-        cb.addItem(self.translate('全部車種'), '*4')
-        cb.addItem(self.translate('自強號'), '*1')
-        cb.addItem(self.translate('莒光號'), '*2')
-        cb.addItem(self.translate('復興號'), '*3')
+        cb.addItem(u'全部車種', '*4')
+        cb.addItem(u'自強號', '*1')
+        cb.addItem(u'莒光號', '*2')
+        cb.addItem(u'復興號', '*3')
 
 
     # 為日期下拉選單產生資料
@@ -133,11 +190,11 @@ class FormWidget(QtGui.QWidget):
         date = datetime.datetime.now()
         strDate = date.date().strftime('%Y/%m/%d')
         dateOfWeek = ['一', '二', '三', '四', '五', '六', '日']
-        cb.addItem(strDate + ' (' + self.translate(dateOfWeek[date.date().weekday()]) + ')', strDate + '-00')
+        cb.addItem(strDate + ' (' + unicode(dateOfWeek[date.date().weekday()],"utf-8") + ')', strDate + '-00')
         for i in range(16):
             date += datetime.timedelta(days=1)
             strDate = date.date().strftime('%Y/%m/%d')
-            cb.addItem(strDate + ' (' + self.translate(dateOfWeek[date.date().weekday()]) + ')',
+            cb.addItem(strDate + ' (' + unicode(dateOfWeek[date.date().weekday()],"utf-8") + ')',
                        strDate + '-' + str(i + 1).zfill(2))
 
 
