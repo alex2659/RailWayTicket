@@ -28,36 +28,43 @@ class FormWidget(QtGui.QWidget):
 
     def __init__(self, parent):
         super(FormWidget, self).__init__(parent)
-        self.layout = QtGui.QGridLayout(self)
-        # =================設定上方控件=================
-        
+
+
+
+        # ====================設定左邊layout 用來呈現訂票介面 裡面包含ticketInfo Layout====================
+        self.leftLayout = QtGui.QGridLayout()
+
+
+        # 設定left layout的上方控件
         self.lbID = QtGui.QLabel( u"身份證字號：")
         self.lbID.setObjectName(u"lbID")
-        self.layout.addWidget(self.lbID,0,0,1,1)
+        self.leftLayout.addWidget(self.lbID,0,0)
         self.textID = QtGui.QLineEdit()
         self.textID.setObjectName(u"textID")
-        self.layout.addWidget(self.textID,0,1,1,1)
-        # =================設定去程Layout=================
+        self.leftLayout.addWidget(self.textID,0,1)
 
-        self.group_go = QtGui.QHBoxLayout()
-        b = QtGui.QPushButton('test1')
-        self.group_go.addWidget(b)
-        self.layout.addLayout(self.group_go,1,0,3,1)
-        # =================設定回程Layout=================
-
-        self.group_back = QtGui.QHBoxLayout()
-        b = QtGui.QPushButton('test2')
-        self.group_back.addWidget(b)
-        self.layout.addLayout(self.group_back,1,1,3,1)
-        # =================設定結果Layout=================
-
-        self.group_message = QtGui.QHBoxLayout()
-        b = QtGui.QPushButton('test3')
-        self.group_message.addWidget(b)
-        self.layout.addLayout(self.group_message,1,2,3,1)
+        # ticketInfo Layout 用來放置去回程的控件
+        self.TicketInfolayout = QtGui.QGridLayout()
+        self.leftLayout.addLayout(self.TicketInfolayout,0,2)
 
 
-        self.setLayout(self.layout)
+        # ====================設定右方layout====================
+        self.rightLayout = QtGui.QVBoxLayout()
+        self.groupBox=QtGui.QGroupBox()
+        self.rightLayout.addWidget(self.groupBox)
+
+
+
+
+        # ====================主要layout======================
+        self.mainLayout = QtGui.QHBoxLayout()
+        self.mainLayout.addLayout(self.leftLayout)
+        # 分隔線
+        line = QtGui.QFrame()
+        line.setFrameStyle(QtGui.QFrame.VLine| QtGui.QFrame.Sunken)
+        self.mainLayout.addWidget(line)
+        self.mainLayout.addLayout(self.rightLayout)
+        self.setLayout(self.mainLayout)
 
     # 為訂票張數的combobox add item
     def cbNumAddItem(self, cb):
@@ -124,6 +131,6 @@ class FormWidget(QtGui.QWidget):
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
     MainWindow = MainWindow()
-    MainWindow.resize(600, 400)
+    # MainWindow.resize(600, 400)
     MainWindow.show()
     app.exec_()
