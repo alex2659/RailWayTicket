@@ -28,14 +28,34 @@ class FormWidget(QtGui.QWidget):
 
     def __init__(self, parent):
         super(FormWidget, self).__init__(parent)
-        self.layout = QtGui.QVBoxLayout(self)
+        self.layout = QtGui.QGridLayout(self)
+        # =================設定上方控件=================
+        
+        self.lbID = QtGui.QLabel( u"身份證字號：")
+        self.lbID.setObjectName(u"lbID")
+        self.layout.addWidget(self.lbID,0,0,1,1)
+        self.textID = QtGui.QLineEdit()
+        self.textID.setObjectName(u"textID")
+        self.layout.addWidget(self.textID,0,1,1,1)
+        # =================設定去程Layout=================
 
-        self.button1 = QtGui.QPushButton("Button 1")
-        self.button1.clicked.connect(lambda: self.showAbout())
-        self.layout.addWidget(self.button1)
+        self.group_go = QtGui.QHBoxLayout()
+        b = QtGui.QPushButton('test1')
+        self.group_go.addWidget(b)
+        self.layout.addLayout(self.group_go,1,0,3,1)
+        # =================設定回程Layout=================
 
-        self.button2 = QtGui.QPushButton("Button 2")
-        self.layout.addWidget(self.button2)
+        self.group_back = QtGui.QHBoxLayout()
+        b = QtGui.QPushButton('test2')
+        self.group_back.addWidget(b)
+        self.layout.addLayout(self.group_back,1,1,3,1)
+        # =================設定結果Layout=================
+
+        self.group_message = QtGui.QHBoxLayout()
+        b = QtGui.QPushButton('test3')
+        self.group_message.addWidget(b)
+        self.layout.addLayout(self.group_message,1,2,3,1)
+
 
         self.setLayout(self.layout)
 
@@ -104,6 +124,6 @@ class FormWidget(QtGui.QWidget):
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
     MainWindow = MainWindow()
-    MainWindow.resize(300, 60)
+    MainWindow.resize(600, 400)
     MainWindow.show()
     app.exec_()
