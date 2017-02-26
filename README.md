@@ -36,7 +36,6 @@ Step3.
     安裝以下package
     conda install -c https://conda.binstar.org/menpo opencv
     PyQt4
-    selenium
     下載phantomjs.exe 並將目錄設定到環境變數
 
 Step4.

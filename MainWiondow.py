@@ -4,13 +4,16 @@
 from PyQt4 import QtCore, QtGui
 import datetime,json,sys,io
 from BuyTicket import BuyTicket
+from VPN import VPN
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle(u'台鐵訂票助手')
         self.form_widget = FormWidget(self)
-
+        self.font_size = 12
+        font_label_standard = QtGui.QFont('微軟正黑體', self.font_size)
+        QtGui.QApplication.setFont(font_label_standard)
         # 加入form_widget 表單主體
         self.setCentralWidget(self.form_widget)
 
@@ -46,10 +49,21 @@ class FormWidget(QtGui.QWidget):
         self.textID.setValidator(textID_validator)
         self.leftLayout.addWidget(self.textID,0,1)
 
-        self.submitBtn = QtGui.QPushButton(u'開始訂票')
-        self.submitBtn.setFixedSize(70,70)
+        self.submitBtn = QtGui.QPushButton(u'啟動')
+        self.submitBtn.setFont(QtGui.QFont('微軟正黑體', 20))
+        self.submitBtn.setFixedSize(150,70)
+        self.submitBtn.setIcon(QtGui.QIcon('img/power.png'))
+        self.submitBtn.setIconSize(QtCore.QSize(40, 40))
         self.submitBtn.clicked.connect(lambda: self.Start(self))
         self.leftLayout.addWidget(self.submitBtn,0,3,2,2)
+
+        self.vpnBtn = QtGui.QPushButton(u'開啟跳板')
+        self.vpnBtn.setFixedSize(150, 40)
+        self.vpnBtn.setIcon(QtGui.QIcon('img/vpn.png'))
+        self.vpnBtn.setIconSize(QtCore.QSize(40, 40))
+        self.vpnBtn.clicked.connect(lambda: self.OpenVPN(self))
+        self.leftLayout.addWidget(self.vpnBtn, 2, 3, 2, 2)
+
 
         self.lb_StartStation = QtGui.QLabel(u'起站代碼')
         self.leftLayout.addWidget(self.lb_StartStation,1,0,1,1)
@@ -71,7 +85,6 @@ class FormWidget(QtGui.QWidget):
         self.GoLayout = QtGui.QGroupBox()
         self.GoLayout.setTitle(u'【出發／單程】')
         vbox = QtGui.QGridLayout()
-
         self.lb_Go_Date = QtGui.QLabel(u'乘車日期')
         vbox.addWidget(self.lb_Go_Date,0,0,1,2)
         self.cb_Go_Date = QtGui.QComboBox()
@@ -150,23 +163,57 @@ class FormWidget(QtGui.QWidget):
 
         # ====================設定右方layout====================
         self.rightLayout = QtGui.QGridLayout()
+        self.lbPicBox = QtGui.QLabel(u'驗證碼：')
+        self.rightLayout.addWidget(self.lbPicBox,0,0)
         self.captchaPic = QtGui.QLabel()
-        self.captchaPic.setFixedSize(250,150)
-        self.rightLayout.addWidget(self.captchaPic,0,0,1,5)
+        self.captchaPic.setFixedSize(203,62)
+        self.captchaPic.setStyleSheet(
+            'border:1px solid rgb(0, 0, 0)'
+        )
+        self.rightLayout.addWidget(self.captchaPic,1,0,3,2)
+        self.rightLayout.setRowMinimumHeight(4, 220)   #用來填補下面空白的部份
+
+
+        # ==============設定下方log專用layout====================
+        self.buttomLayout = QtGui.QGridLayout()
+        self.lbLog = QtGui.QLabel(u'【狀態】')
+        self.buttomLayout.addWidget(self.lbLog,0,0)
+        self.clearBtn = QtGui.QPushButton(u'清除')
+        self.clearBtn.clicked.connect(self.clearLog)
+        self.buttomLayout.addWidget(self.clearBtn,0,4,1,1)
+        self.textBrowser = QtGui.QPlainTextEdit()
+        self.textBrowser.setReadOnly(True)
+        self.buttomLayout.addWidget(self.textBrowser,1,0,1,5)
 
 
 
 
 
         # ====================主要layout======================
-        self.mainLayout = QtGui.QHBoxLayout()
-        self.mainLayout.addLayout(self.leftLayout)
+        self.mainLayout = QtGui.QGridLayout()
+        self.mainLayout.addLayout(self.leftLayout,0,0)
         # 分隔線
         line = QtGui.QFrame()
         line.setFrameStyle(QtGui.QFrame.VLine| QtGui.QFrame.Sunken)
-        self.mainLayout.addWidget(line)
-        self.mainLayout.addLayout(self.rightLayout)
+        self.mainLayout.addWidget(line,0,1)
+        self.mainLayout.addLayout(self.rightLayout,0,2)
+        # 分隔線
+        hline = QtGui.QFrame()
+        hline.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
+        self.mainLayout.addWidget(hline,1,0,1,5)
+        self.mainLayout.addLayout(self.buttomLayout,2,0,1,5)
         self.setLayout(self.mainLayout)
+
+    # 將輸出訊息輸入到狀態視窗
+    def logMsg(self,record):
+        try:
+            msg = unicode(record, 'utf-8')
+        except:
+            msg = record
+        self.textBrowser.appendPlainText(msg)
+    # 清除狀態欄
+    def clearLog(self):
+        self.textBrowser.clear()
 
     # 為訂票張數的combobox add item
     def cbNumAddItem(self, cb):
@@ -213,7 +260,7 @@ class FormWidget(QtGui.QWidget):
                     cb.addItem(sdata_sorted[ii]['Station'], int(sdata_sorted[ii]['ID']))
 
         except IOError as ioerr:
-            print('File Error: ' + str(ioerr))
+            self.showMessage('查無車站json檔: ' + str(ioerr))
 
     # 顯示出對話視窗 要在connect裡傳參數可使用 lambda: self.showMessage(u'text you want to display')
     def showMessage(self,message=None):
@@ -232,6 +279,14 @@ class FormWidget(QtGui.QWidget):
     def Start(self,mainWindow):
         do = BuyTicket(mainWindow)
         do.Start()
+    # 開啟VPN
+    def OpenVPN(self,mainWindow):
+        vpn = VPN(mainWindow)
+        path = vpn.PathFromReg()
+        if 'openvpn' in path.lower():
+            vpn.ConnectVPN()
+        else:
+            QtGui.QMessageBox.warning(self, u"警告",u"尚未安裝OpenVPN，請參閱README.MD的說明")
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)

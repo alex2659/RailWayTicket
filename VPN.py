@@ -24,8 +24,9 @@ class VPN:
     .....etc
     """
 
-    def __init__(self, country=''):
-
+    def __init__(self,mainWindow, country=''):
+        # pyqt視窗的實例化物件
+        self.mainWindow = mainWindow
         self.country = country
 
         path=self.PathFromReg()
@@ -39,20 +40,20 @@ class VPN:
         elif len(country) > 2:
             self.index = 5  # 國家名稱全名
         else:
-            print('請指定國家(全名或縮寫) 或不輸入，預設判斷全部資料')
+            self.mainWindow.logMsg('請指定國家(全名或縮寫) 或不輸入，預設判斷全部資料')
             exit(1)
 
     #  連接上最快速的VPN
     def ConnectVPN(self):
         try:
-            print("====Start to getting VPN====")
+            self.mainWindow.logMsg("====Start to getting VPN====")
             vpn_data = requests.get('http://www.vpngate.net/api/iphone/').text.replace('\r','')
             servers = [line.split(',') for line in vpn_data.split('\n')]
             labels = servers[1]
             labels[0] = labels[0][1:]
             servers = [s for s in servers[2:] if len(s) > 1]
         except:
-            print('Cannot get VPN servers data')
+            self.mainWindow.logMsg('Cannot get VPN servers data')
             exit(1)
 
         if self.index != -1:
@@ -60,27 +61,27 @@ class VPN:
         else:
             desired = servers
         found = len(desired)
-        print('Found ' + str(found) + ' servers for country ' + self.country
+        self.mainWindow.logMsg('Found ' + str(found) + ' servers for country ' + self.country
               if len(self.country) > 0
               else 'Found ' + str(found) + ' servers')
         if found == 0:
             exit(1)
 
         supported = [s for s in desired if len(s[-1]) > 0]
-        print(str(len(supported)) + ' of these servers support OpenVPN')
+        self.mainWindow.logMsg(str(len(supported)) + ' of these servers support OpenVPN')
         # 依照總分欄位 排序servers 取出最快的server
         winner = sorted(supported, key=lambda s: s[2], reverse=True)[0]
 
-        print("\n== Best server ==")
+        self.mainWindow.logMsg("\n== Best server ==")
         #  [:-1]是指不取最後一欄
         pairs = list(zip(labels, winner))[:-1]
         for (l, d) in pairs[:4]:
-            print(l + ': ' + d)
+            self.mainWindow.logMsg(l + ': ' + d)
 
-        print(pairs[4][0] + ': ' + str(float(pairs[4][1]) / 10**6) + ' MBps')
-        print("Country: " + pairs[5][1])
+        self.mainWindow.logMsg(pairs[4][0] + ': ' + str(float(pairs[4][1]) / 10**6) + ' MBps')
+        self.mainWindow.logMsg("Country: " + pairs[5][1])
 
-        print("\nLaunching VPN...")
+        self.mainWindow.logMsg("\nLaunching VPN...")
 
         #  Debug用  將vpn config檔寫入txt檔
         # f = open(r'C:\Users\vi000\Desktop\vpn config.txt', 'w', encoding='UTF-8')
@@ -113,12 +114,12 @@ class VPN:
                 pass
             while self.process.poll() != 0:
                 time.sleep(1)
-            print('\nVPN terminated')
+            self.mainWindow.logMsg('\nVPN terminated')
 
     #  確認VPN有無連線上
     def testVPN(self):
         r = requests.get('http://www.icanhazip.com')
-        print("icanhazip回傳的IP是" + r.text)
+        self.mainWindow.logMsg("icanhazip回傳的IP是" + r.text)
 
     #  回傳環境變數 用來判斷有沒有安裝open vpn
     #  path = PathFromReg()
