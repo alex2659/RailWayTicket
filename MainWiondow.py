@@ -49,8 +49,10 @@ class FormWidget(QtGui.QWidget):
         super(FormWidget, self).__init__(parent)
         # 是否手動選擇VPN
         self.IsManuallyChooseVPN = False
-        # 手動選出來的VPN列表
+        # 手動選出來的VPN列表 要傳遞給vpn class
         self.ManuallyVPNServer = None
+        # VPN list的表頭
+        self.VPNheader = None
 
 
         # ====================設定左邊layout 用來呈現訂票介面 裡面包含ticketInfo Layout====================
@@ -305,38 +307,44 @@ class FormWidget(QtGui.QWidget):
             vpn.ConnectVPN()
         else:
             QtGui.QMessageBox.warning(self, u"警告",u"尚未安裝OpenVPN，請參閱README.MD的說明")
-
+    # 顯示vpn設定的對話框 並把值存檔下來
     def showVPNdialog(self,mainWindow):
-        ok = VPNDialog.getVPNLists(mainWindow) #這段有點複雜 因為要取得dialog的回傳值 反正看得懂就好
-        self.logMsg(str(ok))
+        header,selectedValue, groupchecked, ok = VPNDialog.getVPNLists(mainWindow) #這段有點複雜 因為要取得dialog的回傳值 反正看得懂就好
+        self.IsManuallyChooseVPN = groupchecked
+        # 手動選出來的VPN列表 要傳遞給vpn class
+        self.ManuallyVPNServer = selectedValue
+        self.VPNheader = header
 
 
+#========================================VPN設定對話框================================
 class VPNDialog(QtGui.QDialog):
     def __init__(self, mainWindow, parent = None):
         super(VPNDialog, self).__init__(parent)
 
         layout = QtGui.QVBoxLayout(self)
 
-        groupVpn = QtGui.QGroupBox()
-        groupVpn.setTitle(u'【手動選擇VPN】 取消勾選則自動選擇最快Server')
-        groupVpn.setCheckable(True)
-        groupVpn.setChecked(False)
+        self.groupVpn = QtGui.QGroupBox()
+        self.groupVpn.setTitle(u'【手動選擇VPN】 取消勾選則自動選擇最快Server')
+        self.groupVpn.setCheckable(True)
+        self.groupVpn.setMinimumSize(800,500)
+        self.groupVpn.setChecked(mainWindow.IsManuallyChooseVPN) #從formWidget取得全域變數來設定groupBox的checked狀態
         # 取得vpn lists
         vpn = VPN(mainWindow)
-        vpnLists,header = vpn.getVpnServerLists()
+        self.vpnLists,self.header = vpn.getVpnServerLists()
         vbox = QtGui.QVBoxLayout()
-        TableView = QtGui.QTableView()
-        tm = MyTableModel(vpnLists, header, self)
-        TableView.setModel(tm)
-        header = TableView.horizontalHeader()
+        self.TableView = QtGui.QTableView()
+        self.TableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection) #只能選一個row
+        self.TableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows) #指定選擇整個row
+        tm = MyTableModel(self.vpnLists, self.header, self)
+        self.TableView.setModel(tm)
+
+        header = self.TableView.horizontalHeader()
         header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(5, QtGui.QHeaderView.ResizeToContents)
-
-        vbox.addWidget(TableView)
-        groupVpn.setLayout(vbox)
-
-        layout.addWidget(groupVpn)
+        vbox.addWidget(self.TableView)
+        self.groupVpn.setLayout(vbox)
+        layout.addWidget(self.groupVpn)
 
         # 確認按鈕跟取消按鈕
         buttons = QtGui.QDialogButtonBox()
@@ -348,9 +356,16 @@ class VPNDialog(QtGui.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    # get current date and time from the dialog
-    # def dateTime(self):
-    #     return self.datetime.dateTime()
+    def getIschecked(self):
+        return self.groupVpn.isChecked()
+
+    def getSelectedValue(self):
+        try:
+            return self.vpnLists[self.TableView.selectionModel().selectedRows()[0].row()]
+        except:
+            return None
+    def getHeader(self):
+        return self.header
 
     @staticmethod
     def getVPNLists(mainWindow,parent = None):
@@ -364,10 +379,12 @@ class VPNDialog(QtGui.QDialog):
         app_icon.addFile('img/train.png', QtCore.QSize(256, 256))
         dialog.setWindowIcon(app_icon)
         result = dialog.exec_()
-        # date = dialog.dateTime()
-        # return (result == QtGui.QDialog.Accepted)
-        return QtGui.QDialog.Accepted
+        groupchecked = dialog.getIschecked()
+        selectedValue = dialog.getSelectedValue()
+        header = dialog.getHeader()
+        return (header,selectedValue,groupchecked, result == QtGui.QDialog.Accepted)
 
+#========================================產生給QTableView用的資料================================
 class MyTableModel(QtCore.QAbstractTableModel):
     def __init__(self, datain, headerdata, parent=None, *args):
         """ datain: a list of lists

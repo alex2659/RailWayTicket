@@ -45,11 +45,16 @@ class VPN:
 
     #  連接上最快速的VPN
     def ConnectVPN(self):
-        # 取得vpn server列表
-        supported,labels = self.getVpnServerLists()
 
-        # 依照總分欄位 排序servers 取出最快的server
-        winner = supported[0]
+        # 如果有從dialog手動選擇vpn 就用手動選的vpn 否則預設自動取得
+        if self.mainWindow.IsManuallyChooseVPN and self.mainWindow.ManuallyVPNServer is not None:
+            winner = self.mainWindow.ManuallyVPNServer
+            labels = self.mainWindow.VPNheader
+        else:
+            # 取得vpn server列表
+            supported,labels = self.getVpnServerLists()
+            # 依照總分欄位 排序servers 取出最快的server
+            winner = supported[0]
 
         self.mainWindow.logMsg("\n== Best server ==")
         #  [:-1]是指不取最後一欄
