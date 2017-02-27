@@ -10,7 +10,7 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle(u'台鐵訂票助手')
-        
+
         app_icon = QtGui.QIcon()
         app_icon.addFile('img/train.png', QtCore.QSize(16, 16))
         app_icon.addFile('img/train.png', QtCore.QSize(24, 24))
@@ -26,12 +26,19 @@ class MainWindow(QtGui.QMainWindow):
         # 加入form_widget 表單主體
         self.setCentralWidget(self.form_widget)
 
+        # 加入vpn設定
+        VPNAction = QtGui.QAction(u'VPN設定', self)
+        VPNAction.triggered.connect(self.form_widget.showVPNdialog)
         # 加入menu bar 幫助
         AboutAction = QtGui.QAction(u'關於', self)
         AboutAction.triggered.connect(self.form_widget.showAbout)
+
+
         menubar = self.menuBar()
-        AboutMenu = menubar.addMenu(u'幫助')
+        AboutMenu = menubar.addMenu(u'選單')
+        AboutMenu.addAction(VPNAction)
         AboutMenu.addAction(AboutAction)
+
 
 
 
@@ -295,6 +302,43 @@ class FormWidget(QtGui.QWidget):
             vpn.ConnectVPN()
         else:
             QtGui.QMessageBox.warning(self, u"警告",u"尚未安裝OpenVPN，請參閱README.MD的說明")
+
+    def showVPNdialog(self):
+        date, time, ok = VPNDialog.getDateTime()
+        self.logMsg(str(date)+'  '+str(time)+'  '+str(ok))
+
+
+class VPNDialog(QtGui.QDialog):
+    def __init__(self, parent = None):
+        super(VPNDialog, self).__init__(parent)
+
+        layout = QtGui.QVBoxLayout(self)
+
+        # nice widget for editing the date
+        self.datetime = QtGui.QDateTimeEdit(self)
+        self.datetime.setCalendarPopup(True)
+        self.datetime.setDateTime(QtCore.QDateTime.currentDateTime())
+        layout.addWidget(self.datetime)
+
+        # OK and Cancel buttons
+        buttons = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    # get current date and time from the dialog
+    def dateTime(self):
+        return self.datetime.dateTime()
+
+    # static method to create the dialog and return (date, time, accepted)
+    @staticmethod
+    def getDateTime(parent = None):
+        dialog = VPNDialog(parent)
+        result = dialog.exec_()
+        date = dialog.dateTime()
+        return (date.date(), date.time(), result == QtGui.QDialog.Accepted)
+
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
