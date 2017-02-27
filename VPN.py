@@ -45,30 +45,9 @@ class VPN:
 
     #  連接上最快速的VPN
     def ConnectVPN(self):
-        try:
-            self.mainWindow.logMsg("====Start to getting VPN====")
-            vpn_data = requests.get('http://www.vpngate.net/api/iphone/').text.replace('\r','')
-            servers = [line.split(',') for line in vpn_data.split('\n')]
-            labels = servers[1]
-            labels[0] = labels[0][1:]
-            servers = [s for s in servers[2:] if len(s) > 1]
-        except:
-            self.mainWindow.logMsg('Cannot get VPN servers data')
-            exit(1)
+        # 取得vpn server列表
+        supported,labels = self.getVpnServerLists()
 
-        if self.index != -1:
-            desired = [s for s in servers if self.country.lower() in s[self.index].lower()]
-        else:
-            desired = servers
-        found = len(desired)
-        self.mainWindow.logMsg('Found ' + str(found) + ' servers for country ' + self.country
-              if len(self.country) > 0
-              else 'Found ' + str(found) + ' servers')
-        if found == 0:
-            exit(1)
-
-        supported = [s for s in desired if len(s[-1]) > 0]
-        self.mainWindow.logMsg(str(len(supported)) + ' of these servers support OpenVPN')
         # 依照總分欄位 排序servers 取出最快的server
         winner = sorted(supported, key=lambda s: s[2], reverse=True)[0]
 
@@ -105,6 +84,34 @@ class VPN:
             f.close()
 
             self.process = subprocess.Popen(['sudo', 'openvpn', '--config', path])
+
+    def getVpnServerLists(self):
+        try:
+            self.mainWindow.logMsg("====Start to getting VPN====")
+            vpn_data = requests.get('http://www.vpngate.net/api/iphone/').text.replace('\r','')
+            servers = [line.split(',') for line in vpn_data.split('\n')]
+            labels = servers[1]
+            labels[0] = labels[0][1:]
+            servers = [s for s in servers[2:] if len(s) > 1]
+        except Exception, e:
+            print(e)
+            self.mainWindow.logMsg('Cannot get VPN servers data')
+            exit(1)
+
+        if self.index != -1:
+            desired = [s for s in servers if self.country.lower() in s[self.index].lower()]
+        else:
+            desired = servers
+        found = len(desired)
+        self.mainWindow.logMsg('Found ' + str(found) + ' servers for country ' + self.country
+              if len(self.country) > 0
+              else 'Found ' + str(found) + ' servers')
+        if found == 0:
+            exit(1)
+
+        supported = [s for s in desired if len(s[-1]) > 0]
+        self.mainWindow.logMsg(str(len(supported)) + ' of these servers support OpenVPN')
+        return supported,labels
 
     #  只有Linux會用到
     def disConnect(self):

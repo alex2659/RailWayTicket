@@ -28,7 +28,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # 加入vpn設定
         VPNAction = QtGui.QAction(u'VPN設定', self)
-        VPNAction.triggered.connect(self.form_widget.showVPNdialog)
+        VPNAction.triggered.connect(lambda:self.form_widget.showVPNdialog(self.form_widget))
         # 加入menu bar 幫助
         AboutAction = QtGui.QAction(u'關於', self)
         AboutAction.triggered.connect(self.form_widget.showAbout)
@@ -47,7 +47,10 @@ class FormWidget(QtGui.QWidget):
 
     def __init__(self, parent):
         super(FormWidget, self).__init__(parent)
-
+        # 是否手動選擇VPN
+        self.IsManuallyChooseVPN = False
+        # 手動選出來的VPN列表
+        self.ManuallyVPNServer = None
 
 
         # ====================設定左邊layout 用來呈現訂票介面 裡面包含ticketInfo Layout====================
@@ -303,41 +306,67 @@ class FormWidget(QtGui.QWidget):
         else:
             QtGui.QMessageBox.warning(self, u"警告",u"尚未安裝OpenVPN，請參閱README.MD的說明")
 
-    def showVPNdialog(self):
-        date, time, ok = VPNDialog.getDateTime()
-        self.logMsg(str(date)+'  '+str(time)+'  '+str(ok))
+    def showVPNdialog(self,mainWindow):
+        ok = VPNDialog.getVPNLists(mainWindow) #這段有點複雜 因為要取得dialog的回傳值 反正看得懂就好
+        self.logMsg(str(ok))
 
 
 class VPNDialog(QtGui.QDialog):
-    def __init__(self, parent = None):
+    def __init__(self, mainWindow, parent = None):
         super(VPNDialog, self).__init__(parent)
 
         layout = QtGui.QVBoxLayout(self)
 
-        # nice widget for editing the date
-        self.datetime = QtGui.QDateTimeEdit(self)
-        self.datetime.setCalendarPopup(True)
-        self.datetime.setDateTime(QtCore.QDateTime.currentDateTime())
-        layout.addWidget(self.datetime)
+        groupVpn = QtGui.QGroupBox()
+        groupVpn.setTitle(u'【手動選擇VPN】 取消勾選則自動選擇最快Server')
+        groupVpn.setCheckable(True)
+        groupVpn.setChecked(False)
+        # 取得vpn lists
+        vpn = VPN(mainWindow)
+        vpnLists,labels = vpn.getVpnServerLists()
 
-        # OK and Cancel buttons
-        buttons = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        vbox = QtGui.QVBoxLayout()
+        model = QtGui.QStandardItemModel()
+        model.setHorizontalHeaderLabels(labels)
+        TableView = QtGui.QTableView()
+        TableView.setModel(model)
+
+
+
+        vbox.addWidget(TableView)
+        groupVpn.setLayout(vbox)
+
+        layout.addWidget(groupVpn)
+
+        # 確認按鈕跟取消按鈕
+        buttons = QtGui.QDialogButtonBox()
+        action_btn = buttons.addButton(QtGui.QDialogButtonBox.Ok)
+        action_btn.setText(u'確定')
+        cancel_btn = buttons.addButton(QtGui.QDialogButtonBox.Cancel)
+        cancel_btn.setText(u'取消')
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
     # get current date and time from the dialog
-    def dateTime(self):
-        return self.datetime.dateTime()
+    # def dateTime(self):
+    #     return self.datetime.dateTime()
 
-    # static method to create the dialog and return (date, time, accepted)
     @staticmethod
-    def getDateTime(parent = None):
-        dialog = VPNDialog(parent)
+    def getVPNLists(mainWindow,parent = None):
+        dialog = VPNDialog(mainWindow)
+        dialog.setWindowTitle(u'手動選擇VPN')
+        app_icon = QtGui.QIcon()
+        app_icon.addFile('img/train.png', QtCore.QSize(16, 16))
+        app_icon.addFile('img/train.png', QtCore.QSize(24, 24))
+        app_icon.addFile('img/train.png', QtCore.QSize(32, 32))
+        app_icon.addFile('img/train.png', QtCore.QSize(48, 48))
+        app_icon.addFile('img/train.png', QtCore.QSize(256, 256))
+        dialog.setWindowIcon(app_icon)
         result = dialog.exec_()
-        date = dialog.dateTime()
-        return (date.date(), date.time(), result == QtGui.QDialog.Accepted)
+        # date = dialog.dateTime()
+        # return (result == QtGui.QDialog.Accepted)
+        return QtGui.QDialog.Accepted
 
 
 if __name__ == '__main__':
