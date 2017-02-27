@@ -324,13 +324,17 @@ class VPNDialog(QtGui.QDialog):
         # 取得vpn lists
         vpn = VPN(mainWindow)
         vpnLists,labels = vpn.getVpnServerLists()
-
+        mainWindow.logMsg(str(vpnLists))
         vbox = QtGui.QVBoxLayout()
         model = QtGui.QStandardItemModel()
         model.setHorizontalHeaderLabels(labels)
+        # model.setColumnCount(10)
+        # model.setRowCount(600)
+        # for row in range(len(vpnLists)):
+        #     for column in range(len(labels)):
+        #         model.setItem(row, column, QtGui.QTableWidgetItem(QtCore.QString("%1").arg(vpnLists[row][column])))
         TableView = QtGui.QTableView()
         TableView.setModel(model)
-
 
 
         vbox.addWidget(TableView)

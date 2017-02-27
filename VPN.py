@@ -49,7 +49,7 @@ class VPN:
         supported,labels = self.getVpnServerLists()
 
         # 依照總分欄位 排序servers 取出最快的server
-        winner = sorted(supported, key=lambda s: s[2], reverse=True)[0]
+        winner = supported[0]
 
         self.mainWindow.logMsg("\n== Best server ==")
         #  [:-1]是指不取最後一欄
@@ -111,7 +111,7 @@ class VPN:
 
         supported = [s for s in desired if len(s[-1]) > 0]
         self.mainWindow.logMsg(str(len(supported)) + ' of these servers support OpenVPN')
-        return supported,labels
+        return sorted(supported, key=lambda s: s[2], reverse=True),labels
 
     #  只有Linux會用到
     def disConnect(self):
