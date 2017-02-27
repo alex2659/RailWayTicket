@@ -323,19 +323,15 @@ class VPNDialog(QtGui.QDialog):
         groupVpn.setChecked(False)
         # 取得vpn lists
         vpn = VPN(mainWindow)
-        vpnLists,labels = vpn.getVpnServerLists()
-        mainWindow.logMsg(str(vpnLists))
+        vpnLists,header = vpn.getVpnServerLists()
         vbox = QtGui.QVBoxLayout()
-        model = QtGui.QStandardItemModel()
-        model.setHorizontalHeaderLabels(labels)
-        # model.setColumnCount(10)
-        # model.setRowCount(600)
-        # for row in range(len(vpnLists)):
-        #     for column in range(len(labels)):
-        #         model.setItem(row, column, QtGui.QTableWidgetItem(QtCore.QString("%1").arg(vpnLists[row][column])))
         TableView = QtGui.QTableView()
-        TableView.setModel(model)
-
+        tm = MyTableModel(vpnLists, header, self)
+        TableView.setModel(tm)
+        header = TableView.horizontalHeader()
+        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(5, QtGui.QHeaderView.ResizeToContents)
 
         vbox.addWidget(TableView)
         groupVpn.setLayout(vbox)
@@ -372,6 +368,41 @@ class VPNDialog(QtGui.QDialog):
         # return (result == QtGui.QDialog.Accepted)
         return QtGui.QDialog.Accepted
 
+class MyTableModel(QtCore.QAbstractTableModel):
+    def __init__(self, datain, headerdata, parent=None, *args):
+        """ datain: a list of lists
+            headerdata: a list of strings
+        """
+        QtCore.QAbstractTableModel.__init__(self, parent, *args)
+        self.arraydata = datain
+        self.headerdata = headerdata
+
+    def rowCount(self, parent):
+        return len(self.arraydata)
+
+    def columnCount(self, parent):
+        return len(self.arraydata[0])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        elif role != QtCore.Qt.DisplayRole:
+            return QtCore.QVariant()
+        return QtCore.QVariant(self.arraydata[index.row()][index.column()])
+
+    def headerData(self, col, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.headerdata[col])
+        return QtCore.QVariant()
+
+    def sort(self, Ncol, order):
+        """Sort table by given column number.
+        """
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.arraydata = sorted(self.arraydata, key=lambda s: s[2])
+        if order == QtCore.Qt.DescendingOrder:
+            self.arraydata.reverse()
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
