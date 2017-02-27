@@ -191,7 +191,31 @@ class FormWidget(QtGui.QWidget):
             'border:1px solid rgb(0, 0, 0)'
         )
         self.rightLayout.addWidget(self.captchaPic,1,0,3,2)
-        self.rightLayout.setRowMinimumHeight(4, 220)   #用來填補下面空白的部份
+
+        self.groupBoxGoResult = QtGui.QGroupBox()
+        self.groupBoxGoResult.setStyleSheet("QGroupBox { background-color: rgb(255, 228,\
+        224); border:1px solid rgb(122, 16, 0); }")
+        self.groupBoxGoResult.setTitle(u'【去程訂票結果】')
+        gorBox = QtGui.QVBoxLayout()
+        self.Go_resultMsg = QtGui.QLabel()   #  用來顯示訂票結果
+        self.Go_resultMsg.setStyleSheet('QLabel {color: red}')
+        gorBox.addWidget(self.Go_resultMsg)
+        self.groupBoxGoResult.setLayout(gorBox)
+        self.rightLayout.addWidget(self.groupBoxGoResult,5,0,4,3)
+
+        self.groupBoxBackResult = QtGui.QGroupBox()
+        self.groupBoxBackResult.setStyleSheet("QGroupBox { background-color: rgb(255, 228,\
+        224); border:1px solid rgb(122, 16, 0); }")
+        self.groupBoxBackResult.setTitle(u'【回程訂票結果】')
+        backrBox = QtGui.QVBoxLayout()
+        self.Back_resultMsg =  QtGui.QLabel()  #  用來顯示訂票結果
+        self.Back_resultMsg.setStyleSheet('QLabel {color: red}')
+        backrBox.addWidget(self.Back_resultMsg)
+        self.groupBoxBackResult.setLayout(backrBox)
+        self.rightLayout.addWidget(self.groupBoxBackResult, 9, 0, 4, 3)
+
+
+        # self.rightLayout.setRowMinimumHeight(4, 220)   #用來填補下面空白的部份
 
 
         # ==============設定下方log專用layout====================
