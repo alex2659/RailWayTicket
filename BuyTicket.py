@@ -1,10 +1,9 @@
 # encoding: utf-8
 import requests
 from PIL import Image
-import numpy
-import cv2
 from PyQt4 import QtCore, QtGui
 from StringIO import StringIO
+import re
 
 class BuyTicket:
     def __init__(self, mainWindow):
@@ -44,7 +43,7 @@ class BuyTicket:
 
 
     def Start(self):
-        self.PrintAllVariable()
+        # self.PrintAllVariable()
         # ==================
         # 輸入基本資料頁
         # ==================
@@ -73,7 +72,7 @@ class BuyTicket:
         QtGui.QApplication.processEvents()
 
         num, ok = QtGui.QInputDialog.getText(self.mainWindow, u"驗證碼", u"請輸入驗證碼")
-
+        self.mainWindow.logMsg('驗證碼:'+num)
         if ok:
             # ===============================
             # 來回票訂票結果
@@ -85,19 +84,25 @@ class BuyTicket:
             # print(data)
             result = s.get(url, params= data, headers=headers)
             result.encoding = 'big5-hkscs'
-            print(result.text)
-            print('====================================\n')
+            #  過濾出結果頁的html訊息
+            GoreturnMsg = self.htmlRegexMatchResult(result.text)
+            self.mainWindow.Go_resultMsg.setText(unicode(GoreturnMsg,"utf-8"))
+            self.mainWindow.logMsg(result.text)
+            self.mainWindow.logMsg('====================================\n')
             #  回程訂票結果
             data2 = self.GetQueryData(type=2, returnTicket=2, randInput=num)
             result = s.get(url, params=data2, headers=headers)
             result.encoding = 'big5-hkscs'
-            print(result.text)
+            self.mainWindow.logMsg(result.text)
+            #  過濾出結果頁的html訊息
+            BackreturnMsg = self.htmlRegexMatchResult(result.text)
+            self.mainWindow.Back_resultMsg.setText(unicode(BackreturnMsg,"utf-8"))
 
 
     # 印出所有參數 Debug用
     def PrintAllVariable(self):
         attrs = vars(self)
-        print ', \n'.join("%s: %s" % item for item in attrs.items())
+        self.mainWindow.logMsg(', \n'.join("%s: %s" % item for item in attrs.items()))
 
     # 取得combobox的value
     def GetComboboxValue(self, cb):
@@ -139,3 +144,30 @@ class BuyTicket:
         # 避免request在get時會將網址encode
         strdata = "&".join("%s=%s" % (k, v) for k, v in data.items())
         return strdata
+    # 輸入結果頁面的html 回傳result message
+    def htmlRegexMatchResult(self,html):
+        if html.find(u"亂數號碼錯誤") > -1:
+            result = "驗證碼錯誤"
+        elif html.find(u"身分證字號錯誤") > -1:
+            result = "身份證字號錯誤"
+        elif html.find(u"此期間訂票額滿") > -1:
+            result = "此期間訂票額滿，\n或無指定條件之車次"
+        elif html.find(u"該車種已訂票額滿") > -1:
+            result = "【該時段、該車種已訂票額滿】\n─ 請改訂其他時段、車種乘車票"
+        elif html.find(u'訂票日期錯誤或內容格式錯誤') > -1:
+            result = "訂票日期錯誤或內容格式錯誤"
+        elif html.find(u"您的車票已訂到") > -1:
+            regex = r"<span id='spanOrderCode'[^>]*>(?P<code>\d*).*車次：</span> <span class='hv1 blue01 bold01'>(?P<trainNumber>\d*).*車種：</span> <span class='hv1 blue01 bold01'>(?P<kind>[自強|莒光|復興]*)"
+            # p = re.compile(regex)
+            try:
+                html = html.decode('utf-8')
+            except:
+                pass
+            m = re.search(regex.decode('utf-8'), html)
+            result = str.format("您的車票已訂到\n電腦代碼:{} \n車次:{}  車種:{}",
+                                m.group('code').encode('utf-8'), m.group('trainNumber').encode('utf-8'),
+                                m.group('kind').encode('utf-8'))
+        else:
+            result = "查無回傳資料"
+
+        return result
