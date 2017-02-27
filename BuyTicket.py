@@ -72,30 +72,38 @@ class BuyTicket:
         QtGui.QApplication.processEvents()
 
         num, ok = QtGui.QInputDialog.getText(self.mainWindow, u"驗證碼", u"請輸入驗證碼")
-        self.mainWindow.logMsg('驗證碼:'+num)
         if ok:
             # ===============================
             # 來回票訂票結果
             # ===============================
-
-            url = 'http://railway.hinet.net/order_kind1.jsp'
             # 去程訂票結果
+            dateType = self.checkDateType(self.Go_Date)
+            if dateType =='ctkind':
+                url = 'http://railway.hinet.net/ctkind11.jsp'
+            elif dateType =='order_kind':
+                url = 'http://railway.hinet.net/order_kind1.jsp'
             data = self.GetQueryData(type=2, returnTicket=1, randInput=num)
             # print(data)
             result = s.get(url, params= data, headers=headers)
             result.encoding = 'big5-hkscs'
             #  過濾出結果頁的html訊息
-            GoreturnMsg = self.htmlRegexMatchResult(result.text)
+            GoreturnMsg = self.htmlRegexMatchResult(result.text,dateType)
             self.mainWindow.Go_resultMsg.setText(unicode(GoreturnMsg,"utf-8"))
             self.mainWindow.logMsg(result.text)
             self.mainWindow.logMsg('====================================\n')
+
             #  回程訂票結果
+            dateType = self.checkDateType(self.Back_Date)
+            if dateType =='ctkind':
+                url = 'http://railway.hinet.net/ctkind11.jsp'
+            elif dateType =='order_kind':
+                url = 'http://railway.hinet.net/order_kind1.jsp'
             data2 = self.GetQueryData(type=2, returnTicket=2, randInput=num)
             result = s.get(url, params=data2, headers=headers)
             result.encoding = 'big5-hkscs'
             self.mainWindow.logMsg(result.text)
             #  過濾出結果頁的html訊息
-            BackreturnMsg = self.htmlRegexMatchResult(result.text)
+            BackreturnMsg = self.htmlRegexMatchResult(result.text,dateType)
             self.mainWindow.Back_resultMsg.setText(unicode(BackreturnMsg,"utf-8"))
 
 
@@ -144,8 +152,26 @@ class BuyTicket:
         # 避免request在get時會將網址encode
         strdata = "&".join("%s=%s" % (k, v) for k, v in data.items())
         return strdata
+
+    # 台鐵結果頁會依據日期的區間 來get不同的網址 回傳的html也會不太一樣
+    # 所以要判斷是前十天還是後五天
+    # 傳入的格式 yyyy/mm/dd-aa    aa是index流水號 11(含)之前的是一個網址 之後是另一個網址
+    def checkDateType(self,date):
+        p = re.compile(r'\d{4}/\d{2}/\d{2}-(\d*)')
+        m = p.match(date)
+        if m.group(1).isdigit():
+            if int(m.group(1)) > 11:
+                return 'ctkind'
+            else:
+                return 'order_kind'
+        else:
+            return '非數字'
+
+
+
     # 輸入結果頁面的html 回傳result message
-    def htmlRegexMatchResult(self,html):
+    # 日期流水號在11之前跟之後 回傳的html不一樣 所以要分開判斷
+    def htmlRegexMatchResult(self,html,dateType):
         if html.find(u"亂數號碼錯誤") > -1:
             result = "驗證碼錯誤"
         elif html.find(u"身分證字號錯誤") > -1:
@@ -157,16 +183,22 @@ class BuyTicket:
         elif html.find(u'訂票日期錯誤或內容格式錯誤') > -1:
             result = "訂票日期錯誤或內容格式錯誤"
         elif html.find(u"您的車票已訂到") > -1:
-            regex = r"<span id='spanOrderCode'[^>]*>(?P<code>\d*).*車次：</span> <span class='hv1 blue01 bold01'>(?P<trainNumber>\d*).*車種：</span> <span class='hv1 blue01 bold01'>(?P<kind>[自強|莒光|復興]*)"
-            # p = re.compile(regex)
+            if dateType == 'order_kind':
+                regex = r"<span id='spanOrderCode'[^>]*>(?P<code>\d*).*車次：</span> <span class='hv1 blue01 bold01'>(?P<trainNumber>\d*).*車種：</span> <span class='hv1 blue01 bold01'>(?P<kind>[自強|莒光|復興]*)"
+            elif dateType == 'ctkind':
+                regex = r"<span id=\"spanOrderCode\" [^>]*>(?P<code>\d*)[^車次]*車次：</span> <span[^>]*>(?P<trainNumber>\d*)[^車]*車種：</span> <span[^>]*>\s*(?P<kind>[自強|莒光|復興]*)"
             try:
                 html = html.decode('utf-8')
             except:
                 pass
-            m = re.search(regex.decode('utf-8'), html)
-            result = str.format("您的車票已訂到\n電腦代碼:{} \n車次:{}  車種:{}",
-                                m.group('code').encode('utf-8'), m.group('trainNumber').encode('utf-8'),
-                                m.group('kind').encode('utf-8'))
+            match = re.search(regex.decode('utf-8'), html)
+
+            if match is not None:
+                result = str.format("您的車票已訂到\n電腦代碼:{} \n車次:{}  車種:{}",
+                                    match.group('code'), match.group('trainNumber'),
+                                    match.group('kind').encode('utf-8'))
+            else:
+                result = "您的車票已訂到"
         else:
             result = "查無回傳資料"
 

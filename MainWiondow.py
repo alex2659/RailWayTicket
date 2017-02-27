@@ -284,7 +284,7 @@ class FormWidget(QtGui.QWidget):
         strDate = date.date().strftime('%Y/%m/%d')
         dateOfWeek = ['一', '二', '三', '四', '五', '六', '日']
         cb.addItem(strDate + ' (' + unicode(dateOfWeek[date.date().weekday()],"utf-8") + ')', strDate + '-00')
-        for i in range(16):
+        for i in range(14):
             date += datetime.timedelta(days=1)
             strDate = date.date().strftime('%Y/%m/%d')
             cb.addItem(strDate + ' (' + unicode(dateOfWeek[date.date().weekday()],"utf-8") + ')',
