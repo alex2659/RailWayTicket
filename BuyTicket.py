@@ -76,13 +76,14 @@ class BuyTicket:
             # ===============================
             # 來回票訂票結果
             # ===============================
-            # 去程訂票結果
+            # 去程/單程訂票結果
             dateType = self.checkDateType(self.Go_Date)
             if dateType =='ctkind':
                 url = 'http://railway.hinet.net/ctkind11.jsp'
             elif dateType =='order_kind':
                 url = 'http://railway.hinet.net/order_kind1.jsp'
-            data = self.GetQueryData(type=2, returnTicket=1, randInput=num)
+            #如果是單程票 returnTicket是0 若是雙程票 returnTicket=1
+            data = self.GetQueryData(type=2, returnTicket=1 if self.IsTwoWay else 0, randInput=num)
             # print(data)
             result = s.get(url, params= data, headers=headers)
             result.encoding = 'big5-hkscs'
@@ -91,20 +92,21 @@ class BuyTicket:
             self.mainWindow.Go_resultMsg.setText(unicode(GoreturnMsg,"utf-8"))
             self.mainWindow.logMsg(result.text)
             self.mainWindow.logMsg('====================================\n')
-
-            #  回程訂票結果
-            dateType = self.checkDateType(self.Back_Date)
-            if dateType =='ctkind':
-                url = 'http://railway.hinet.net/ctkind11.jsp'
-            elif dateType =='order_kind':
-                url = 'http://railway.hinet.net/order_kind1.jsp'
-            data2 = self.GetQueryData(type=2, returnTicket=2, randInput=num)
-            result = s.get(url, params=data2, headers=headers)
-            result.encoding = 'big5-hkscs'
-            self.mainWindow.logMsg(result.text)
-            #  過濾出結果頁的html訊息
-            BackreturnMsg = self.htmlRegexMatchResult(result.text,dateType)
-            self.mainWindow.Back_resultMsg.setText(unicode(BackreturnMsg,"utf-8"))
+            # 有勾選雙程票才要跑這段
+            if self.IsTwoWay:
+                #  回程訂票結果
+                dateType = self.checkDateType(self.Back_Date)
+                if dateType =='ctkind':
+                    url = 'http://railway.hinet.net/ctkind11.jsp'
+                elif dateType =='order_kind':
+                    url = 'http://railway.hinet.net/order_kind1.jsp'
+                data2 = self.GetQueryData(type=2, returnTicket=2, randInput=num)
+                result = s.get(url, params=data2, headers=headers)
+                result.encoding = 'big5-hkscs'
+                self.mainWindow.logMsg(result.text)
+                #  過濾出結果頁的html訊息
+                BackreturnMsg = self.htmlRegexMatchResult(result.text,dateType)
+                self.mainWindow.Back_resultMsg.setText(unicode(BackreturnMsg,"utf-8"))
 
 
     # 印出所有參數 Debug用
