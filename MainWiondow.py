@@ -87,13 +87,13 @@ class FormWidget(QtGui.QWidget):
 
         self.lb_StartStation = QtGui.QLabel(u'起站代碼')
         self.leftLayout.addWidget(self.lb_StartStation,1,0,1,1)
-        self.cb_StartStation = QtGui.QComboBox()
+        self.cb_StartStation = ExtendedComboBox()
         self.cbStationAddItem(self.cb_StartStation)
         self.leftLayout.addWidget(self.cb_StartStation,1,1,1,1)
 
         self.lb_EndStation = QtGui.QLabel(u'到站代碼')
         self.leftLayout.addWidget(self.lb_EndStation,2,0,1,1)
-        self.cb_EndStation = QtGui.QComboBox()
+        self.cb_EndStation = ExtendedComboBox()
         self.cbStationAddItem(self.cb_EndStation)
         self.leftLayout.addWidget(self.cb_EndStation,2,1,1,1)
 
@@ -444,6 +444,80 @@ class MyTableModel(QtCore.QAbstractTableModel):
         if order == QtCore.Qt.DescendingOrder:
             self.arraydata.reverse()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
+
+
+class ExtendedComboBox(QtGui.QComboBox):
+    def __init__(self, parent=None):
+        super(ExtendedComboBox, self).__init__(parent)
+
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+        self.setEditable(True)
+
+        # add a filter model to filter matching items
+
+        self.pFilterModel = QtGui.QSortFilterProxyModel(self)
+
+        self.pFilterModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.pFilterModel.setSourceModel(self.model())
+
+        # add a completer, which uses the filter model
+
+        self.completer = QtGui.QCompleter(self.pFilterModel, self)
+
+        # always show all (filtered) completions
+
+        self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+
+        self.setCompleter(self.completer)
+
+        # connect signals
+
+        self.lineEdit().textEdited[unicode].connect(self.pFilterModel.setFilterFixedString)
+
+        self.completer.activated.connect(self.on_completer_activated)
+
+    # on selection of an item from the completer, select the corresponding item from combobox
+
+    def on_completer_activated(self, text):
+        if text:
+            index = self.findText(text)
+
+            self.setCurrentIndex(index)
+    # 當lose focus時 判斷combobox輸入的text有沒有在item中
+    def event(self, event):
+        if event.type() == QtCore.QEvent.FocusOut:
+            text = self.currentText()
+            if text:
+                index = self.findText(text)
+                if index == -1:
+                    self.setStyleSheet('QComboBox{border:1px solid red}')
+                else:
+                    self.setStyleSheet('QComboBox{border:1px solid gray}')
+
+
+        return QtGui.QComboBox.event(self, event)
+
+    # on model change, update the models of the filter and completer as well
+
+    def setModel(self, model):
+        super(ExtendedComboBox, self).setModel(model)
+
+        self.pFilterModel.setSourceModel(model)
+
+        self.completer.setModel(self.pFilterModel)
+
+    # on model column change, update the model column of the filter and completer as well
+
+    def setModelColumn(self, column):
+        self.completer.setCompletionColumn(column)
+
+        self.pFilterModel.setFilterKeyColumn(column)
+
+        super(ExtendedComboBox, self).setModelColumn(column)
+
+
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
