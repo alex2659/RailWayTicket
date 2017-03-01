@@ -98,13 +98,13 @@ class Image:
                     countWidth2= 0
                     #  移除橫線 在每個像素找尋橫向的像素 如果<threshold 就count+1
                     for c in range(j, width):
-                        if self.CheckPixelIsBlack(self.im[i][c]):
-                            countWidth += 1
-                        else:
-                            break
-                        # 檢查下方有沒有直線
                         try:
-                            if self.CheckPixelIsBlack(self.im[i-1][c]):
+                            if self.CheckPixelIsBlack(self.im[i][c]) and self.CheckPixelIsWhite(self.im[i+1][c]):
+                                countWidth += 1
+                            else:
+                                break
+                        # 檢查下方有沒有直線
+                            if self.CheckPixelIsBlack(self.im[i-1][c]) and self.CheckPixelIsWhite(self.im[i-2][c]):
                                 countWidth2+=1
                             else:
                                 break
@@ -132,15 +132,15 @@ class Image:
                 if self.CheckPixelIsBlack(self.im[i][j]):
                     countHeight = 0
                     countHeight2 = 0
-                    #  移除橫線
+                    #  移除直線
                     for c in range(i, height):
-                        if self.CheckPixelIsBlack(self.im[c][j]):
-                            countHeight += 1
-                        else:
-                            break
-                        # 檢查右方有沒有直線
                         try:
-                            if self.CheckPixelIsBlack(self.im[c][j+1]):
+                            if self.CheckPixelIsBlack(self.im[c][j]) and self.CheckPixelIsWhite(self.im[c][j-1]):
+                                countHeight += 1
+                            else:
+                                break
+                        # 檢查右方有沒有直線
+                            if self.CheckPixelIsBlack(self.im[c][j+1]) and self.CheckPixelIsWhite(self.im[c][j+2]):
                                 countHeight2 += 1
                             else:
                                 break
@@ -310,7 +310,7 @@ if __name__ == '__main__':
         # x.SaveImg()
         x.removeBlackLines()
         # x.medianBlur()
-        # x.threshold()
+        x.threshold()
         # x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
