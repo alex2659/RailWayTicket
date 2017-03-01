@@ -161,8 +161,8 @@ class Image:
         # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
-    #  傳入RGB的pixel 判斷是否是黑點
-    def CheckPixelIsBlack(self, pixel, min= 0,max= 230):
+    #  傳入RGB的pixel 判斷是否是黑點  (色調分離後 干擾線的RGB會變(127,127,127))
+    def CheckPixelIsBlack(self, pixel, min= 127,max= 127):
         return self.CheckPixelColor(pixel,min,max)
     #  傳入RGB的pixel 判斷是否是白點
     def CheckPixelIsWhite(self, pixel, min= 160,max= 255):
@@ -295,6 +295,10 @@ class Image:
             plt.show()
         else:
             print '圖片數字陣列為空'
+    #  存檔
+    def SaveImg(self):
+
+        cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
 
 # 目前步驟 1.色調分離 濾掉背景色 2.移除黑線
 if __name__ == '__main__':
@@ -303,6 +307,7 @@ if __name__ == '__main__':
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
         x.mop_close()
+        x.SaveImg()
         # x.removeBlackLines()
         # x.medianBlur()
         # x.threshold()
