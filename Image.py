@@ -84,7 +84,7 @@ class Image:
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
         self.dicImg.update({"色調分離": self.im.copy()})
 
-    #  干擾線檢測
+    #  干擾線檢測  (只檢查寬度為2pxiel的直線&橫線)
     def removeBlackLines(self):
         chop = 4  #  線段長度大於chop 才判斷為干擾線
         lineColor = 255  #  將線段設定為黑或白色 255:白 0:黑
@@ -95,43 +95,34 @@ class Image:
                 #  如果是黑色點 開始計算線段長度
                 if self.CheckPixelIsBlack(self.im[i][j]):
                     countWidth = 0
+                    countWidth2= 0
                     #  移除橫線 在每個像素找尋橫向的像素 如果<threshold 就count+1
                     for c in range(j, width):
                         if self.CheckPixelIsBlack(self.im[i][c]):
                             countWidth += 1
                         else:
                             break
+                        # 檢查下方有沒有直線
+                        try:
+                            if self.CheckPixelIsBlack(self.im[i-1][c]):
+                                countWidth2+=1
+                            else:
+                                break
+                        except:
+                            pass
+
                     #  如果大於指定長度 代表是線段
-                    if countWidth >= chop:
+                    if countWidth >= chop and countWidth >= chop:
                         for c in range(countWidth):
                             try:
                                 #  如果此點的上下兩個點是白的 代表不在數字裡 可以移除
-                                if self.CheckPixelIsWhite(self.im[i+1, j+c]) and self.CheckPixelIsWhite(self.im[i-1, j+c]):
-                                    # self.im[i, j+c] = self.im[i-1:i+1, j+c,2].mean()
+                                if self.CheckPixelIsWhite(self.im[i+1, j+c]) and self.CheckPixelIsWhite(self.im[i-2, j+c]):
                                     self.im[i, j + c] =lineColor
-                                # # #  判斷是不是兩條干擾線重疊在一起 搜尋此點的下面的點的右邊 判斷下面的點是不是也是橫向線段
-                                # elif self.im[i+1, j+c] < threshold:
-                                #     count = 0
-                                #     for x in range(j, width):
-                                #         if self.im[i+1][x] < threshold:
-                                #             count += 1
-                                #         else:
-                                #             break
-                                #     if count >= chop:
-                                #         self.im[i, j + c] = lineColor
-                                # elif self.im[i-1, j+c] < threshold:
-                                #     count = 0
-                                #     for x in range(j, width):
-                                #         if self.im[i-1][x] < threshold:
-                                #             count += 1
-                                #         else:
-                                #             break
-                                #     if count >= chop:
-                                #         self.im[i, j + c] = lineColor
+                                    self.im[i-1, j + c] = lineColor
 
                             except IndexError:
-                                # self.im[i, j + c] = self.im[i-1:i+1, j+c,2].mean()
                                 self.im[i, j + c] = lineColor
+                                self.im[i - 1, j + c] = lineColor
 
                     j += countWidth
         #  loop 每一個pixel
@@ -140,21 +131,30 @@ class Image:
                 #  如果是黑色點 開始計算線段長度
                 if self.CheckPixelIsBlack(self.im[i][j]):
                     countHeight = 0
+                    countHeight2 = 0
                     #  移除橫線
                     for c in range(i, height):
                         if self.CheckPixelIsBlack(self.im[c][j]):
                             countHeight += 1
                         else:
                             break
-                    if countHeight >= chop:
+                        # 檢查右方有沒有直線
+                        try:
+                            if self.CheckPixelIsBlack(self.im[c][j+1]):
+                                countHeight2 += 1
+                            else:
+                                break
+                        except:
+                            pass
+                    if countHeight >= chop and countHeight2 >= chop:
                         for c in range(countHeight):
                             try:
-                                if self.CheckPixelIsWhite(self.im[i + c, j + 1]) and self.CheckPixelIsWhite(self.im[i + c, j - 1]):
-                                    # self.im[i + c, j] = self.im[i + c, j-1:j + 1,2].mean()
+                                if self.CheckPixelIsWhite(self.im[i + c, j + 2]) and self.CheckPixelIsWhite(self.im[i + c, j - 1]):
                                     self.im[i + c, j] =lineColor
+                                    self.im[i + c, j+1] =lineColor
                             except IndexError:
-                                    # self.im[i + c, j] =self.im[i + c, j-1:j + 1,2].mean()
                                     self.im[i + c, j] = lineColor
+                                    self.im[i + c, j+1] = lineColor
 
                     i += countHeight
         # 存檔
@@ -307,8 +307,8 @@ if __name__ == '__main__':
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
         x.mop_close()
-        x.SaveImg()
-        # x.removeBlackLines()
+        # x.SaveImg()
+        x.removeBlackLines()
         # x.medianBlur()
         # x.threshold()
         # x.removeNoise()
