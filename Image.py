@@ -188,6 +188,30 @@ class Image:
 
         # 顯示腐蝕後的圖像
         self.dicImg.update({"閉運算": self.im.copy()})
+    # 垂直投影
+    def horShadow(self):
+        # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
+        paintx = np.zeros(self.im.shape, np.uint8)
+        # 將新圖像數組中的所有通道元素的值都設置為0
+        cv2.cv.Zero(cv2.cv.fromarray(paintx))
+
+        # 創建width長度都為0的數組
+        w = [0] * self.im.shape[1]
+        # 對每一行計算投影值
+        for x in range(self.im.shape[1]):
+            for y in range(self.im.shape[0]):
+                t = cv2.cv.Get2D(cv2.cv.fromarray(self.im), y, x)
+                if t[0] == 0:
+                    w[x] += 1
+
+        # 繪製垂直投影圖
+        for x in range(self.im.shape[1]):
+            for y in range(w[x]):
+                # 把為0的像素變成白
+
+                cv2.cv.Set2D(cv2.cv.fromarray(paintx), y, x, (255, 255, 255))
+        self.dicImg.update({"投影": paintx})
+
 
     #  切割圖片
     def splitImg(self):
@@ -311,6 +335,7 @@ if __name__ == '__main__':
         x.removeBlackLines()
         # x.medianBlur()
         x.threshold()
+        x.horShadow()
         # x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
