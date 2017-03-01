@@ -178,6 +178,16 @@ class Image:
         self.im = cv2.medianBlur(self.im, 3)
         self.dicImg.update({"中值模糊": self.im})
 
+    # 閉運算
+    def mop_close(self):
+        # 定義結構元素
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+
+        # 閉運算
+        self.im = cv2.morphologyEx(self.im, cv2.MORPH_CLOSE, kernel)
+
+        # 顯示腐蝕後的圖像
+        self.dicImg.update({"閉運算": self.im.copy()})
 
     #  切割圖片
     def splitImg(self):
@@ -258,6 +268,7 @@ class Image:
         cv2.resizeWindow(self.imageName, 250, 60)
         cv2.waitKey()
 
+
     #  將多個圖片顯示在一個figure
     def showImgEveryStep(self):
         diclength = len(self.dicImg)
@@ -291,10 +302,11 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
         x.posterization()
-        x.removeBlackLines()
+        x.mop_close()
+        # x.removeBlackLines()
         # x.medianBlur()
         # x.threshold()
-        x.removeNoise()
+        # x.removeNoise()
         # x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
