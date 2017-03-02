@@ -9,6 +9,7 @@ from matplotlib.font_manager import FontProperties
 import collections
 import os, random, sys
 import numpy as np
+from scipy import ndimage
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -195,22 +196,63 @@ class Image:
         # 將新圖像數組中的所有通道元素的值都設置為0
         cv2.cv.Zero(cv2.cv.fromarray(paintx))
 
-        # 創建width長度都為0的數組
-        w = [0] * self.im.shape[1]
+        # 創建width長度都為0的數組 此陣列會存放每一column的黑點的個數
+        num_of_valid_pix = [0] * self.im.shape[1]
         # 對每一行計算投影值
         for x in range(self.im.shape[1]):
             for y in range(self.im.shape[0]):
                 t = cv2.cv.Get2D(cv2.cv.fromarray(self.im), y, x)
-                if t[0] == 0:
-                    w[x] += 1
+                if t[0] == 255: #  如果是黑色點就count+1
+                    num_of_valid_pix[x] += 1
 
         # 繪製垂直投影圖
         for x in range(self.im.shape[1]):
-            for y in range(w[x]):
-                # 把為0的像素變成白
+            for y in range(num_of_valid_pix[x]):
+                # 把為255的像素變成黑
 
                 cv2.cv.Set2D(cv2.cv.fromarray(paintx), y, x, (255, 255, 255))
         self.dicImg.update({"投影": paintx})
+
+        # ==============分割圖片=======================
+        letter_col_id = []  # @letter_col_id儲存每個數字所在的欄位的index
+        i = 0
+        # loop num_of_valid_pix陣列 如果黑色點數量>0 就將index加到letter_id 代表文字所在的index
+        while i in range(len(num_of_valid_pix)):
+            letter_id = []  # @letter_id 儲存每個數字的欄位數
+            # letter feature: there must be blank cols that contains no valid pixels in the column
+            while num_of_valid_pix[i] != 0:
+                letter_id.append(i)
+                i += 1
+            if letter_id:
+                letter_col_id.append(letter_id)
+            i += 1
+        # 確認每個字的寬度
+        numofLetters = len(letter_col_id)
+        # this part is dealing with the saparated
+        height = self.im.shape[0]
+        imgarr = []
+        print(numofLetters)
+        print('=============')
+        for j in range(numofLetters):
+            colsForLetter = len(letter_col_id[j])
+            print(len(letter_col_id[j]))
+            if colsForLetter in range(5, 14):
+                newimg = np.zeros((height,len(letter_col_id[j])), np.uint8)
+                for y in range(height):
+                    # rowbuffer = []
+                    i = 0
+                    for x in letter_col_id[j]:
+                        newimg.itemset((y, i), 0)
+                        i += 1
+                        imgarr.append(newimg)
+
+
+        # cv2.line(self.im, (20, 0), (20, 60), (255, 255, 255))
+        # self.im = self.im[:,:30] 切割圖片 讓圖片width減短
+
+        # =====================================================
+
+        self.dicImg.update({"切割": imgarr})
 
 
     #  切割圖片
@@ -222,7 +264,6 @@ class Image:
 
         for index, (c, _) in enumerate(cnts):
             (x, y, w, h) = cv2.boundingRect(c)
-
             try:
                 # 只將寬高大於 8 視為數字留存
                 if w > 8 and h > 8:
