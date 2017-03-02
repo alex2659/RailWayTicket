@@ -189,8 +189,8 @@ class Image:
 
         # 顯示腐蝕後的圖像
         self.dicImg.update({"閉運算": self.im.copy()})
-    # 垂直投影
-    def horShadow(self):
+    # 把多餘的白色圖片切掉
+    def cutBlankImage(self):
         # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
         paintx = np.zeros(self.im.shape, np.uint8)
         # 將新圖像數組中的所有通道元素的值都設置為0
@@ -212,6 +212,7 @@ class Image:
 
                 cv2.cv.Set2D(cv2.cv.fromarray(paintx), y, x, (255, 255, 255))
         self.dicImg.update({"投影": paintx})
+
 
         # ==============分割圖片=======================
         # letter_col_id = []  # @letter_col_id儲存每個數字所在的欄位的index
@@ -257,12 +258,15 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
-        # self.im = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
-        contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # 將圖片二值化 以便做邊緣檢測
+        img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
+        self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
+        # 找出輪廓
+        contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
         # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
-        cv2.drawContours(self.im, contours, -1, (0, 100, 0), 1)
+        cv2.drawContours(self.im, contours, -1, (0, 255, 0), 1)
         self.dicImg.update({"找出輪廓": self.im})
         # for index, (c, _) in enumerate(cnts):
         #     (x, y, w, h) = cv2.boundingRect(c)
@@ -373,13 +377,13 @@ if __name__ == '__main__':
     for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
-        x.posterization()
-        x.mop_close()
+        x.posterization() #色調分離
+        x.mop_close() #閉運算
         # x.SaveImg()
-        x.removeBlackLines()
+        x.removeBlackLines() #直線檢測
         # x.medianBlur()
-        x.threshold()
-        # x.horShadow()
+        # x.threshold()
+        # x.cutBlankImage() #去掉圖片空白部份
         # x.removeNoise()
         x.splitImg()
         # x.positiveImg()
