@@ -258,16 +258,25 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
+        COLORS = [(109, 0, 0),
+                  (1, 0, 109),
+                  (0, 109, 0)
+                  ]
+
         # 將圖片二值化 以便做邊緣檢測
         img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
         # 找出輪廓
-        contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
-        # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
-        cv2.drawContours(self.im, contours, -1, (0, 255, 0), 1)
+        for index, (c, _) in enumerate(cnts):
+            (x, y, w, h) = cv2.boundingRect(c)
+
+            # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
+            cv2.drawContours(self.im, [i for i, v in cnts], index, COLORS[index % 3], 1)
         self.dicImg.update({"找出輪廓": self.im})
+
         # for index, (c, _) in enumerate(cnts):
         #     (x, y, w, h) = cv2.boundingRect(c)
         #     self.arr.append((x, y, w, h))
