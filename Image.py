@@ -258,23 +258,33 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
-        COLORS = [(109, 0, 0),
-                  (1, 0, 109),
-                  (0, 109, 0)
+        COLORS = [(255, 0, 0),
+                  (0, 0, 255),
+                  (0, 255, 0)
                   ]
 
         # 將圖片二值化 以便做邊緣檢測
         img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
         # 找出輪廓
-        contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
-        cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
-        for index, (c, _) in enumerate(cnts):
-            (x, y, w, h) = cv2.boundingRect(c)
+        cnts = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
+        # 取出輪廓的範圍、區域大小 且過濾太小的輪廓
+        cnts = [(c, area) for c, area, x in cnts if 7 < area < 1000]
 
+        print([area for i, area in cnts])
+        for index, (c, area) in enumerate(cnts):
+            (x, y, w, h) = cv2.boundingRect(c)
             # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
-            cv2.drawContours(self.im, [i for i, v in cnts], index, COLORS[index % 3], 1)
+            cv2.drawContours(self.im, [i for i, area in cnts], index, COLORS[index % 3], 1)
+
+            # M = cv2.moments(c)
+            # cX = int(M['m10'] / M['m00'])
+            # cY = int(M['m01'] / M['m00'])
+            # # 在中心點畫上實心圓
+            # cv2.circle(self.im, (cX, cY), 1, (0, 255, 0), -1)
+
         self.dicImg.update({"找出輪廓": self.im})
 
         # for index, (c, _) in enumerate(cnts):
