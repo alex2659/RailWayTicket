@@ -39,7 +39,7 @@ class Image:
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         # 反轉黑白 以利輪廓識別
         gray_image = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
-        self.retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY_INV)
+        self.retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
         self.dicImg.update({"閾值化": self.im.copy()})
@@ -261,25 +261,28 @@ class Image:
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         cnts = sorted([(c, cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[1])
+        # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
+        cv2.drawContours(self.im, contours, -1, (0, 100, 0), 1)
+        self.dicImg.update({"找出輪廓": self.im})
+        # for index, (c, _) in enumerate(cnts):
+        #     (x, y, w, h) = cv2.boundingRect(c)
+        #     self.arr.append((x, y, w, h))
+            # try:
+            #     # 只將寬高大於 8 視為數字留存
+            #     if w > 8 and h > 8:
+            #         add = True
+            #         for i in range(0, len(self.arr)):
+            #             # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
+            #             if abs(cnts[index][1] - self.arr[i][0]) <= 3:
+            #                 add = False
+            #                 break
+            #         if add:
+            #             self.arr.append((x, y, w, h))
+            #
+            # except IndexError:
+            #     pass
+        # Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
 
-        for index, (c, _) in enumerate(cnts):
-            (x, y, w, h) = cv2.boundingRect(c)
-            try:
-                # 只將寬高大於 8 視為數字留存
-                if w > 8 and h > 8:
-                    add = True
-                    for i in range(0, len(self.arr)):
-                        # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-                        if abs(cnts[index][1] - self.arr[i][0]) <= 3:
-                            add = False
-                            break
-                    if add:
-                        self.arr.append((x, y, w, h))
-
-            except IndexError:
-                pass
-        Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
-        self.dicImg.update({"分割圖片": Imgarr})
         # self.showImgArray(Imgarr)
 
 
@@ -376,8 +379,8 @@ if __name__ == '__main__':
         x.removeBlackLines()
         # x.medianBlur()
         x.threshold()
-        x.horShadow()
+        # x.horShadow()
         # x.removeNoise()
-        # x.splitImg()
+        x.splitImg()
         # x.positiveImg()
         x.showImgEveryStep()
