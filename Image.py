@@ -266,10 +266,10 @@ class Image:
 
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
-        # 取出輪廓的範圍、區域大小 且過濾太小的輪廓
+        # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
         contours = [c for c, area, x in contours if 7 < area < 1000]
         LENGTH = len(contours)
-        status = np.zeros((LENGTH, 1))
+        status = np.zeros((LENGTH, 1))  # 用來儲存每個輪廓的等級 等級一樣的會合併為同一個輪廓
 
         for i, cnt1 in enumerate(contours):
             x = i
@@ -283,33 +283,29 @@ class Image:
                     else:
                         if status[x] == status[i]:
                             status[x] = i + 1
-
+        # 儲存合併後的輪廓
         unified = []
         maximum = int(status.max()) + 1
         for i in xrange(maximum):
             pos = np.where(status == i)[0]
             if pos.size != 0:
-                cont = np.vstack(contours[i] for i in pos)
-                hull = cv2.convexHull(cont)
-                unified.append(hull)
+                cont = np.vstack(contours[i] for i in pos) # 把陣列合併
+                # hull = cv2.convexHull(cont) # 將合併後的輪廓轉凸包
+                # 如果面積大於200 就是錯誤合併兩個數字了
+                if cv2.contourArea(cont) > 200:
+                    pass
+                unified.append(cont)
 
-        cv2.drawContours(self.im, unified, -1, (0, 255, 0), 2)
+        # for i in range(len(unified)):
+        #     print(cv2.contourArea(unified[i]))
+        # print('=======分隔線============')
 
-        #
-        # print([area for i, area in cnts])
-        # for index, (c, area) in enumerate(cnts):
-        #     (x, y, w, h) = cv2.boundingRect(c)
-        #     # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
-        #     cv2.drawContours(self.im, [i for i, area in cnts], index, COLORS[index % 3], 1)
+        a=self.im.copy()
+        cv2.drawContours(a, contours, -1, (0, 255, 0), 1)
+        self.dicImg.update({"找出輪廓(合併前)": a})
+        cv2.drawContours(self.im, unified, -1, (0, 255, 0), 1)
+        self.dicImg.update({"找出輪廓(合併後)": self.im.copy()})
 
-
-            # M = cv2.moments(c)
-            # cX = int(M['m10'] / M['m00'])
-            # cY = int(M['m01'] / M['m00'])
-            # # 在中心點畫上實心圓
-            # cv2.circle(self.im, (cX, cY), 1, (0, 255, 0), -1)
-
-        self.dicImg.update({"找出輪廓": self.im})
 
         # for index, (c, _) in enumerate(cnts):
         #     (x, y, w, h) = cv2.boundingRect(c)
@@ -332,12 +328,12 @@ class Image:
 
         # self.showImgArray(Imgarr)
     # 找出各輪廓的距離
-    def find_if_close(self, cnt1, cnt2):
+    def find_if_close(self, cnt1, cnt2,distance = 10):
         row1, row2 = cnt1.shape[0], cnt2.shape[0]
         for i in xrange(row1):
             for j in xrange(row2):
                 dist = np.linalg.norm(cnt1[i] - cnt2[j])
-                if abs(dist) < 5:
+                if abs(dist) < distance:
                     return True
                 elif i == row1 - 1 and j == row2 - 1:
                     return False
