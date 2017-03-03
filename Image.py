@@ -287,15 +287,19 @@ class Image:
                                 status[x] = i + 1
             return status
         # 合併各輪廓
-        def MergeEachCnts(contours, distance,unified = []):
+        def MergeEachCnts(contours, distance,unified = [] ,excuteTimes = 0):
             '''
             :param contours: 要判斷距離的輪廓
             :param unified:  已經判斷完 合併後的輪廓
             :return:
             '''
+            print('============\n執行次數:'+ str(excuteTimes))
             unsucess = [] # 面積過大的輪廓放進來重新判斷
             # 取得各輪廓距離的分類
             status = getStatus(contours ,distance)
+            print('status:\n')
+            print(status)
+            print('areas and width:\n')
             maximum = int(status.max()) + 1
             for i in xrange(maximum):
                 pos = np.where(status == i)[0]
@@ -304,15 +308,24 @@ class Image:
                     # hull = cv2.convexHull(cont) # 將合併後的輪廓轉凸包
                     # 如果面積大於200 就是錯誤合併兩個數字了
                     area = cv2.contourArea(cont)
-                    if area > 200:
-                        unsucess.append(cont)
-                    elif area < 50:
+                    (x, y, w, h) = cv2.boundingRect(cont)
+                    print(area)
+                    print(x, y, w, h)
+                    # 當面積大於200或寬度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
+                    if (area > 200 or w > 25) and distance > 0:
+                        for i in pos:
+                            unsucess.append(contours[i])
+                    # 如果distance已經小於0 就把未經合併的原始輪廓加到unified
+                    elif area > 200 and distance <= 0:
+                        for i in pos:
+                            unified.append(contours[i])
+                    # 如果面積<25且寬度小於10 判斷為雜點
+                    elif area < 25 and w < 10:
                         pass
                     else:
                         unified.append(cont)
-
-            if len(unsucess) > 0 and distance > 0:
-                return MergeEachCnts(unsucess,distance-3,unified)
+            if len(unsucess) > 0:
+                return MergeEachCnts(unsucess,distance-3,unified, excuteTimes+1)
             else:
                 return unified
 
@@ -327,8 +340,8 @@ class Image:
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         # contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
-        contours = [c for c  in contours if 7 < cv2.contourArea(c) < 1000]
-
+        contours = [c for c  in contours if 10 < cv2.contourArea(c) < 1000]
+        # 將鄰近的輪廓合併
         unified = MergeEachCnts(contours, 10)
 
         a = self.im.copy()
@@ -338,13 +351,15 @@ class Image:
         self.dicImg.update({"找出輪廓(合併後)": self.im.copy()})
 
         # 依照X軸排序輪廓
-        unified = sorted([(c ,cv2.boundingRect(c)[0]) for c in unified], key=lambda x: x[1])
-        for index, (c,_) in enumerate(unified):
+        unified = sorted([(c ,cv2.boundingRect(c)[0],cv2.contourArea(c)) for c in unified], key=lambda x: x[1])
+        # 再將太小的輪廓移除
+        unified = [c for c,v,a in unified if 35 < a < 200]
+        for index, c in enumerate(unified):
             (x, y, w, h) = cv2.boundingRect(c)
             self.arr.append((x, y, w, h))
             try:
                 # 只將寬高大於 8 視為數字留存
-                if w > 8 and h > 8:
+                if w > 4 and h > 4:
                     add = True
                     for i in range(0, len(self.arr)):
                         # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
