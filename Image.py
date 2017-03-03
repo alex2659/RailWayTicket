@@ -30,7 +30,7 @@ class Image:
         self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
         self.im = cv2.imread(Path + "\\" + ImgName)
-        self.dicImg.update({"原始驗證碼": self.im.copy()})
+        # self.dicImg.update({"原始驗證碼": self.im.copy()})
 
 
     #  閾值化
@@ -42,7 +42,7 @@ class Image:
         self.retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
-        self.dicImg.update({"閾值化": self.im.copy()})
+        # self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去噪
     def removeNoise(self):
@@ -160,7 +160,7 @@ class Image:
                     i += countHeight
         # 存檔
         # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
-        self.dicImg.update({"干擾線檢測": self.im.copy()})
+        # self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     #  傳入RGB的pixel 判斷是否是黑點  (色調分離後 干擾線的RGB會變(127,127,127))
     def CheckPixelIsBlack(self, pixel, min= 127,max= 127):
@@ -188,7 +188,7 @@ class Image:
         self.im = cv2.morphologyEx(self.im, cv2.MORPH_CLOSE, kernel)
 
         # 顯示腐蝕後的圖像
-        self.dicImg.update({"閉運算": self.im.copy()})
+        # self.dicImg.update({"閉運算": self.im.copy()})
     # 把多餘的白色圖片切掉
     def cutBlankImage(self):
         # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
@@ -253,7 +253,7 @@ class Image:
 
         # =====================================================
 
-        # self.dicImg.update({"切割": imgarr})
+        # self.dicImg.update({u"切割": imgarr})
 
 
     #  切割圖片
@@ -311,8 +311,8 @@ class Image:
                     (x, y, w, h) = cv2.boundingRect(cont)
                     print(area)
                     print(x, y, w, h)
-                    # 當面積大於200或寬度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
-                    if (area > 200 or w > 25) and distance > 0:
+                    # 當面積大於200或寬度大於25或高度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
+                    if (area > 200 or w > 25 or h > 25) and distance > 0:
                         for i in pos:
                             unsucess.append(contours[i])
                     # 如果distance已經小於0 就把未經合併的原始輪廓加到unified
@@ -332,10 +332,11 @@ class Image:
 
 
         # 將圖片二值化 以便做邊緣檢測
-        img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
-        self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
+        colorIm = self.im
+        self.im = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
+        self.retval, self.im = cv2.threshold(self.im, 200, 255, cv2.THRESH_BINARY_INV)
         # 找出輪廓
-        contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
         # contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
@@ -344,11 +345,11 @@ class Image:
         # 將鄰近的輪廓合併
         unified = MergeEachCnts(contours, 10)
 
-        a = self.im.copy()
+        a = colorIm.copy()
         cv2.drawContours(a, contours, -1, (255, 0, 0), 1)
         self.dicImg.update({"找出輪廓(合併前)": a})
-        cv2.drawContours(self.im, unified, -1, (255, 0, 0), 1)
-        self.dicImg.update({"找出輪廓(合併後)": self.im.copy()})
+        cv2.drawContours(colorIm, unified, -1, (255, 0, 0), 1)
+        self.dicImg.update({"找出輪廓(合併後)": colorIm.copy()})
 
         # 依照X軸排序輪廓
         unified = sorted([(c ,cv2.boundingRect(c)[0],cv2.contourArea(c)) for c in unified], key=lambda x: x[1])
@@ -427,7 +428,7 @@ class Image:
 
 
     #  將多個圖片顯示在一個figure
-    def showImgEveryStep(self):
+    def showImgEveryStep(self,):
         diclength = len(self.dicImg)
         if diclength > 0:
             fig = plt.figure(figsize=(10, 10))
@@ -472,4 +473,5 @@ if __name__ == '__main__':
         # x.removeNoise()
         x.splitImg()
         # x.positiveImg()
+        # ('原始驗證碼','色調分離','閉運算','干擾線檢測')
         x.showImgEveryStep()
