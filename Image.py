@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
 import collections
-import os, random, sys
+import os, random, sys ,requests
 import numpy as np
 from scipy import ndimage
 
@@ -16,20 +16,23 @@ sys.setdefaultencoding("utf-8")
 
 class Image:
 
-    #  傳入圖片所在目錄和檔名
-    def __init__(self, Path,ImgName):
+    #  傳入requests回傳的content
+    def __init__(self, stream):
         #  設置matplotlib中文字體
         self.font = FontProperties(fname=r"c:\windows\fonts\SimSun.ttc", size=14)
         #  儲存檔名
-        self.imageName = ImgName
-        #  儲存路徑
-        self.Path = Path
+        # self.imageName = ImgName
+        # #  儲存路徑
+        # self.Path = Path
         #  用來儲放分割後的圖片邊緣坐標(x,y,w,h)
         self.arr = []
         #  將每個階段做的圖存起來 用來debug
         self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
-        self.im = cv2.imread(Path + "\\" + ImgName)
+        # self.im = cv2.imread(Path + "\\" + ImgName)
+
+        image = np.asarray(bytearray(stream), dtype="uint8")
+        self.im = cv2.imdecode(image, cv2.IMREAD_COLOR)
         # self.dicImg.update({"原始驗證碼": self.im.copy()})
 
 
@@ -374,6 +377,7 @@ class Image:
                 pass
         Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
         self.dicImg.update({"圖片切割": Imgarr})
+        return Imgarr
 
 
     #  圖片轉正
@@ -411,6 +415,8 @@ class Image:
             thresh = cv2.warpAffine(thresh, M, (col, row))
             # resize 成相同大小以利後續辨識
             thresh = cv2.resize(thresh, (50, 50))
+            # Convert to RGB for QImage.
+            thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
             imgarr.append(thresh)
         self.dicImg.update({"轉正": imgarr})
         return imgarr
@@ -472,7 +478,9 @@ class Image:
 if __name__ == '__main__':
     for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
-        x = Image(r"D:\RailWayCapcha", random.choice(os.listdir(r"D:\RailWayCapcha")))
+        req = requests.get('http://railway.hinet.net/ImageOut.jsp')
+
+        x = Image(req.content)
         x.posterization() #色調分離
         x.mop_close() #閉運算
         # x.SaveImg()
