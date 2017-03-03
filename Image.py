@@ -258,26 +258,50 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
-        COLORS = [(255, 0, 0),
-                  (0, 0, 255),
-                  (0, 255, 0)
-                  ]
-
         # 將圖片二值化 以便做邊緣檢測
         img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
         # 找出輪廓
         contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
-        cnts = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
-        # 取出輪廓的範圍、區域大小 且過濾太小的輪廓
-        cnts = [(c, area) for c, area, x in cnts if 7 < area < 1000]
 
-        print([area for i, area in cnts])
-        for index, (c, area) in enumerate(cnts):
-            (x, y, w, h) = cv2.boundingRect(c)
-            # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
-            cv2.drawContours(self.im, [i for i, area in cnts], index, COLORS[index % 3], 1)
+        #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
+        contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
+        # 取出輪廓的範圍、區域大小 且過濾太小的輪廓
+        contours = [c for c, area, x in contours if 7 < area < 1000]
+        LENGTH = len(contours)
+        status = np.zeros((LENGTH, 1))
+
+        for i, cnt1 in enumerate(contours):
+            x = i
+            if i != LENGTH - 1:
+                for j, cnt2 in enumerate(contours[i + 1:]):
+                    x = x + 1
+                    dist = self.find_if_close(cnt1, cnt2)
+                    if dist == True:
+                        val = min(status[i], status[x])
+                        status[x] = status[i] = val
+                    else:
+                        if status[x] == status[i]:
+                            status[x] = i + 1
+
+        unified = []
+        maximum = int(status.max()) + 1
+        for i in xrange(maximum):
+            pos = np.where(status == i)[0]
+            if pos.size != 0:
+                cont = np.vstack(contours[i] for i in pos)
+                hull = cv2.convexHull(cont)
+                unified.append(hull)
+
+        cv2.drawContours(self.im, unified, -1, (0, 255, 0), 2)
+
+        #
+        # print([area for i, area in cnts])
+        # for index, (c, area) in enumerate(cnts):
+        #     (x, y, w, h) = cv2.boundingRect(c)
+        #     # 畫出輪廓，-1,表示所有輪廓，畫筆顏色為(0, 255, 0)，即Green，粗細為3
+        #     cv2.drawContours(self.im, [i for i, area in cnts], index, COLORS[index % 3], 1)
+
 
             # M = cv2.moments(c)
             # cX = int(M['m10'] / M['m00'])
@@ -307,7 +331,16 @@ class Image:
         # Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
 
         # self.showImgArray(Imgarr)
-
+    # 找出各輪廓的距離
+    def find_if_close(self, cnt1, cnt2):
+        row1, row2 = cnt1.shape[0], cnt2.shape[0]
+        for i in xrange(row1):
+            for j in xrange(row2):
+                dist = np.linalg.norm(cnt1[i] - cnt2[j])
+                if abs(dist) < 5:
+                    return True
+                elif i == row1 - 1 and j == row2 - 1:
+                    return False
 
     #  圖片轉正
     def positiveImg(self):
