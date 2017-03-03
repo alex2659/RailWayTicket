@@ -258,6 +258,66 @@ class Image:
 
     #  切割圖片
     def splitImg(self):
+        # 找出各輪廓的距離
+        def find_if_close(cnt1, cnt2, distance):
+            row1, row2 = cnt1.shape[0], cnt2.shape[0]
+            for i in xrange(row1):
+                for j in xrange(row2):
+                    dist = np.linalg.norm(cnt1[i] - cnt2[j])
+                    if abs(dist) < distance:
+                        return True
+                    elif i == row1 - 1 and j == row2 - 1:
+                        return False
+        # 傳入輪廓陣列 回傳各陣列的距離分級
+        def getStatus(contours,distance):
+            LENGTH = len(contours)
+            status = np.zeros((LENGTH, 1))  # 用來儲存每個輪廓的等級 等級一樣的會合併為同一個輪廓
+
+            for i, cnt1 in enumerate(contours):
+                x = i
+                if i != LENGTH - 1:
+                    for j, cnt2 in enumerate(contours[i + 1:]):
+                        x = x + 1
+                        dist = find_if_close(cnt1, cnt2, distance)
+                        if dist == True:
+                            val = min(status[i], status[x])
+                            status[x] = status[i] = val
+                        else:
+                            if status[x] == status[i]:
+                                status[x] = i + 1
+            return status
+        # 合併各輪廓
+        def MergeEachCnts(contours, distance,unified = []):
+            '''
+            :param contours: 要判斷距離的輪廓
+            :param unified:  已經判斷完 合併後的輪廓
+            :return:
+            '''
+            unsucess = [] # 面積過大的輪廓放進來重新判斷
+            # 取得各輪廓距離的分類
+            status = getStatus(contours ,distance)
+            maximum = int(status.max()) + 1
+            for i in xrange(maximum):
+                pos = np.where(status == i)[0]
+                if pos.size != 0:
+                    cont = np.vstack(contours[i] for i in pos)  # 把輪廓陣列裡的輪廓合併 pos的index對應到輪廓陣列的index
+                    # hull = cv2.convexHull(cont) # 將合併後的輪廓轉凸包
+                    # 如果面積大於200 就是錯誤合併兩個數字了
+                    area = cv2.contourArea(cont)
+                    if area > 200:
+                        unsucess.append(cont)
+                    elif area < 50:
+                        pass
+                    else:
+                        unified.append(cont)
+
+            if len(unsucess) > 0 and distance > 0:
+                return MergeEachCnts(unsucess,distance-3,unified)
+            else:
+                return unified
+
+
+
         # 將圖片二值化 以便做邊緣檢測
         img = cv2.cvtColor(self.im , cv2.COLOR_BGR2GRAY)
         self.retval, img = cv2.threshold(img, 200, 255, cv2.THRESH_BINARY)
@@ -265,83 +325,40 @@ class Image:
         contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
-        contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
+        # contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
-        contours = [c for c, area, x in contours if 7 < area < 1000]
-        LENGTH = len(contours)
-        status = np.zeros((LENGTH, 1))  # 用來儲存每個輪廓的等級 等級一樣的會合併為同一個輪廓
+        contours = [c for c  in contours if 7 < cv2.contourArea(c) < 1000]
 
-        for i, cnt1 in enumerate(contours):
-            x = i
-            if i != LENGTH - 1:
-                for j, cnt2 in enumerate(contours[i + 1:]):
-                    x = x + 1
-                    dist = self.find_if_close(cnt1, cnt2)
-                    if dist == True:
-                        val = min(status[i], status[x])
-                        status[x] = status[i] = val
-                    else:
-                        if status[x] == status[i]:
-                            status[x] = i + 1
-        # 儲存合併後的輪廓
-        unified = []
-        maximum = int(status.max()) + 1
-        for i in xrange(maximum):
-            pos = np.where(status == i)[0]
-            if pos.size != 0:
-                cont = np.vstack(contours[i] for i in pos) # 把輪廓陣列裡的輪廓合併 pos的index對應到輪廓陣列的index
-                # hull = cv2.convexHull(cont) # 將合併後的輪廓轉凸包
-                # 如果面積大於200 就是錯誤合併兩個數字了
-                area = cv2.contourArea(cont)
-                if area > 200:
-                    pass
-                elif area < 50:
-                    pass
-                else:
-                    unified.append(cont)
+        unified = MergeEachCnts(contours, 10)
 
-        # for i in range(len(unified)):
-        #     print(cv2.contourArea(unified[i]))
-        # print('=======分隔線============')
-
-        a=self.im.copy()
-        cv2.drawContours(a, contours, -1, (0, 255, 0), 1)
+        a = self.im.copy()
+        cv2.drawContours(a, contours, -1, (255, 0, 0), 1)
         self.dicImg.update({"找出輪廓(合併前)": a})
-        cv2.drawContours(self.im, unified, -1, (0, 255, 0), 1)
+        cv2.drawContours(self.im, unified, -1, (255, 0, 0), 1)
         self.dicImg.update({"找出輪廓(合併後)": self.im.copy()})
 
+        # 依照X軸排序輪廓
+        unified = sorted([(c ,cv2.boundingRect(c)[0]) for c in unified], key=lambda x: x[1])
+        for index, (c,_) in enumerate(unified):
+            (x, y, w, h) = cv2.boundingRect(c)
+            self.arr.append((x, y, w, h))
+            try:
+                # 只將寬高大於 8 視為數字留存
+                if w > 8 and h > 8:
+                    add = True
+                    for i in range(0, len(self.arr)):
+                        # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
+                        if abs(c[index][1] - self.arr[i][0]) <= 3:
+                            add = False
+                            break
+                    if add:
+                        self.arr.append((x, y, w, h))
 
-        # for index, c in enumerate(unified):
-        #     (x, y, w, h) = cv2.boundingRect(c)
-        #     self.arr.append((x, y, w, h))
-        #     try:
-        #         # 只將寬高大於 8 視為數字留存
-        #         if w > 8 and h > 8:
-        #             add = True
-        #             for i in range(0, len(self.arr)):
-        #                 # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-        #                 if abs(c[index][1] - self.arr[i][0]) <= 3:
-        #                     add = False
-        #                     break
-        #             if add:
-        #                 self.arr.append((x, y, w, h))
-        #
-        #     except IndexError:
-        #         pass
-        # Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
-        # self.dicImg.update({"圖片切割": Imgarr})
+            except IndexError:
+                pass
+        Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
+        self.dicImg.update({"圖片切割": Imgarr})
 
-        # self.showImgArray(Imgarr)
-    # 找出各輪廓的距離
-    def find_if_close(self, cnt1, cnt2,distance = 10):
-        row1, row2 = cnt1.shape[0], cnt2.shape[0]
-        for i in xrange(row1):
-            for j in xrange(row2):
-                dist = np.linalg.norm(cnt1[i] - cnt2[j])
-                if abs(dist) < distance:
-                    return True
-                elif i == row1 - 1 and j == row2 - 1:
-                    return False
 
     #  圖片轉正
     def positiveImg(self):
