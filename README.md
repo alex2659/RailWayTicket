@@ -9,6 +9,7 @@
 
 目錄架構
 -----------------------------
+BatchRenameCaptcha  批次命名驗證碼 用來訓練模型
 BuyTicket.py        買票爬蟲
 DownloadCaptcha.py  下載驗證碼
 Image.py            處理驗證碼

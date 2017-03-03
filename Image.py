@@ -413,6 +413,7 @@ class Image:
             thresh = cv2.resize(thresh, (50, 50))
             imgarr.append(thresh)
         self.dicImg.update({"轉正": imgarr})
+        return imgarr
 
     #  將圖片顯示出來
     def showImg(self, img=None):
@@ -457,6 +458,15 @@ class Image:
     def SaveImg(self):
 
         cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
+
+    # 開始執行 回傳處理完後的圖片陣列
+    def StartProcess(self,path = None,fileName = None):
+        #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
+        self.posterization() #色調分離
+        self.mop_close() #閉運算
+        self.removeBlackLines() #直線檢測
+        self.splitImg()
+        return self.positiveImg()
 
 # 目前步驟 1.色調分離 濾掉背景色 2.移除黑線
 if __name__ == '__main__':
