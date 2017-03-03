@@ -289,12 +289,16 @@ class Image:
         for i in xrange(maximum):
             pos = np.where(status == i)[0]
             if pos.size != 0:
-                cont = np.vstack(contours[i] for i in pos) # 把陣列合併
+                cont = np.vstack(contours[i] for i in pos) # 把輪廓陣列裡的輪廓合併 pos的index對應到輪廓陣列的index
                 # hull = cv2.convexHull(cont) # 將合併後的輪廓轉凸包
                 # 如果面積大於200 就是錯誤合併兩個數字了
-                if cv2.contourArea(cont) > 200:
+                area = cv2.contourArea(cont)
+                if area > 200:
                     pass
-                unified.append(cont)
+                elif area < 50:
+                    pass
+                else:
+                    unified.append(cont)
 
         # for i in range(len(unified)):
         #     print(cv2.contourArea(unified[i]))
@@ -307,24 +311,25 @@ class Image:
         self.dicImg.update({"找出輪廓(合併後)": self.im.copy()})
 
 
-        # for index, (c, _) in enumerate(cnts):
+        # for index, c in enumerate(unified):
         #     (x, y, w, h) = cv2.boundingRect(c)
         #     self.arr.append((x, y, w, h))
-            # try:
-            #     # 只將寬高大於 8 視為數字留存
-            #     if w > 8 and h > 8:
-            #         add = True
-            #         for i in range(0, len(self.arr)):
-            #             # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-            #             if abs(cnts[index][1] - self.arr[i][0]) <= 3:
-            #                 add = False
-            #                 break
-            #         if add:
-            #             self.arr.append((x, y, w, h))
-            #
-            # except IndexError:
-            #     pass
+        #     try:
+        #         # 只將寬高大於 8 視為數字留存
+        #         if w > 8 and h > 8:
+        #             add = True
+        #             for i in range(0, len(self.arr)):
+        #                 # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
+        #                 if abs(c[index][1] - self.arr[i][0]) <= 3:
+        #                     add = False
+        #                     break
+        #             if add:
+        #                 self.arr.append((x, y, w, h))
+        #
+        #     except IndexError:
+        #         pass
         # Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
+        # self.dicImg.update({"圖片切割": Imgarr})
 
         # self.showImgArray(Imgarr)
     # 找出各輪廓的距離
