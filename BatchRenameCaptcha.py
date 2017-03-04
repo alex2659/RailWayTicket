@@ -106,20 +106,15 @@ class RenameWindow(QtGui.QDialog):
 
         self.input1.setFocus(True)
 
-<<<<<<< HEAD
     def GetFileSeqName(self,inputName):
         savePath = r"D:\CaptchaSingle"
         for root, dirs, files in os.walk(savePath):
             indices = [i for i, x in enumerate(files) if x.startswith(inputName)]
-<<<<<<< HEAD
-=======
-            print(len(indices))
->>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
+
 
         fullname = savePath +'\\'+ inputName + '_' + str(len(indices)+1) +'.png'
         return fullname
-=======
->>>>>>> parent of f9cce79... 完成驗證碼批次命名
+
 
 
 class smallPicBox(QtGui.QLabel):

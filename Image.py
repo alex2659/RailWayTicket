@@ -1,14 +1,14 @@
 # encoding: utf-8
 import cv2
-import matplotlib
-import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
 import collections
 import sys
 import requests
 import numpy as np
+import matplotlib
 matplotlib.use('Qt4Agg')
+import matplotlib.pyplot as plt
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
