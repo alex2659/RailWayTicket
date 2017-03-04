@@ -1,13 +1,2 @@
-def test():
-    print('test')
-    def AA():
-        print('AA')
-    def BB():
-        print('BB')
-
-    AA()
-
-
-
-
-test()
+a=200
+print(a in [100])
