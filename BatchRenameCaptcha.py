@@ -126,7 +126,6 @@ class RenameWindow(QtGui.QDialog):
         savePath = r"D:\CaptchaSingle"
         for root, dirs, files in os.walk(savePath):
             indices = [i for i, x in enumerate(files) if x.startswith(inputName)]
-            print(len(indices))
 
         fullname = savePath +'\\'+ inputName + '_' + str(len(indices)+1) +'.png'
         return fullname

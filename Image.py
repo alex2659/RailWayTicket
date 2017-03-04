@@ -1,24 +1,24 @@
 # encoding: utf-8
-from PIL import Image, ImageEnhance
 import cv2
 import matplotlib
-matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from matplotlib.font_manager import FontProperties
 import collections
-import os, random, sys ,requests
+import sys
+import requests
 import numpy as np
-from scipy import ndimage
+matplotlib.use('Qt4Agg')
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
+
 
 class Image:
 
     #  傳入requests回傳的content
     def __init__(self, stream):
-        #  設置matplotlib中文字體
+        #  設置 matplotlib 中文字體
         self.font = FontProperties(fname=r"c:\windows\fonts\SimSun.ttc", size=14)
         #  儲存檔名
         # self.imageName = ImgName
@@ -42,7 +42,7 @@ class Image:
         # 255 是當你將 method 設為 THRESH_BINARY_INV 後，高於 threshold 要設定的顏色
         # 反轉黑白 以利輪廓識別
         gray_image = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
-        self.retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)
+        retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
         # self.dicImg.update({"閾值化": self.im.copy()})
