@@ -341,8 +341,6 @@ class Image:
         # 找出輪廓
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        #  按照X軸位置對圖片進行排序 確保我們從左到右讀取數字
-        # contours = sorted([(c,cv2.contourArea(c), cv2.boundingRect(c)[0]) for c in contours], key=lambda x: x[2])
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
         contours = [c for c  in contours if 10 < cv2.contourArea(c) < 1000]
         # 將鄰近的輪廓合併
@@ -357,13 +355,13 @@ class Image:
         # 依照X軸排序輪廓
         unified = sorted([(c ,cv2.boundingRect(c)[0],cv2.contourArea(c)) for c in unified], key=lambda x: x[1])
         # 再將太小的輪廓移除
-        unified = [c for c,v,a in unified if 35 < a < 200]
+        unified = [c for c,v,a in unified if 20 < a < 200]
         for index, c in enumerate(unified):
             (x, y, w, h) = cv2.boundingRect(c)
             self.arr.append((x, y, w, h))
             try:
                 # 只將寬高大於 8 視為數字留存
-                if w > 4 and h > 4:
+                if w > 3 and h > 3:
                     add = True
                     for i in range(0, len(self.arr)):
                         # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
@@ -490,6 +488,5 @@ if __name__ == '__main__':
         # x.cutBlankImage() #去掉圖片空白部份
         # x.removeNoise()
         x.splitImg()
-        # x.positiveImg()
-        # ('原始驗證碼','色調分離','閉運算','干擾線檢測')
+        x.positiveImg()
         x.showImgEveryStep()
