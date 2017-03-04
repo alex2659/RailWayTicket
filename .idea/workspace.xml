@@ -56,8 +56,13 @@
       <file leaf-file-name="BatchRenameCaptcha.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BatchRenameCaptcha.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="461">
               <caret line="127" column="81" lean-forward="false" selection-start-line="127" selection-start-column="81" selection-end-line="127" selection-end-column="81" />
+=======
+            <state relative-caret-position="1605">
+              <caret line="123" column="0" lean-forward="true" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
               <folding>
                 <element signature="e#49#80#0" expanded="true" />
               </folding>
@@ -88,10 +93,17 @@
       <file leaf-file-name="Image.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Image.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
             <state relative-caret-position="324">
               <caret line="436" column="0" lean-forward="true" selection-start-line="436" selection-start-column="0" selection-end-line="436" selection-end-column="0" />
               <folding>
                 <element signature="e#18#28#0" expanded="true" />
+=======
+            <state relative-caret-position="427">
+              <caret line="418" column="30" lean-forward="false" selection-start-line="418" selection-start-column="30" selection-end-line="418" selection-end-column="30" />
+              <folding>
+                <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
               </folding>
             </state>
           </provider>
@@ -619,7 +631,11 @@
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.107429184" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+<<<<<<< HEAD
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32968238" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+=======
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329718" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32995737" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -701,7 +717,11 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+<<<<<<< HEAD
             <element signature="e#18#28#0" expanded="true" />
+=======
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
@@ -735,7 +755,11 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+<<<<<<< HEAD
             <element signature="e#18#28#0" expanded="true" />
+=======
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
@@ -768,7 +792,11 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+<<<<<<< HEAD
             <element signature="e#18#28#0" expanded="true" />
+=======
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
@@ -801,7 +829,11 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+<<<<<<< HEAD
             <element signature="e#18#28#0" expanded="true" />
+=======
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
@@ -834,7 +866,11 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
+<<<<<<< HEAD
             <element signature="e#18#28#0" expanded="true" />
+=======
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
@@ -996,18 +1032,30 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BatchRenameCaptcha.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
         <state relative-caret-position="461">
           <caret line="127" column="81" lean-forward="false" selection-start-line="127" selection-start-column="81" selection-end-line="127" selection-end-column="81" />
           <folding>
             <element signature="e#49#80#0" expanded="true" />
+=======
+        <state relative-caret-position="427">
+          <caret line="418" column="30" lean-forward="false" selection-start-line="418" selection-start-column="30" selection-end-line="418" selection-end-column="30" />
+          <folding>
+            <element signature="e#18#53#0" expanded="true" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Image.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
         <state relative-caret-position="324">
           <caret line="436" column="0" lean-forward="true" selection-start-line="436" selection-start-column="0" selection-end-line="436" selection-end-column="0" />
+=======
+        <state relative-caret-position="1605">
+          <caret line="123" column="0" lean-forward="true" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
+>>>>>>> c62a4217b187eebadb8340218cf4a631d323d3ac
           <folding>
             <element signature="e#18#28#0" expanded="true" />
           </folding>
