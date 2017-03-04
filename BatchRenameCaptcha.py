@@ -7,8 +7,7 @@ from PIL import Image as pilIm
 import sys,random,os,requests
 from StringIO import StringIO
 from Image import Image
-import os.path as path
-import re
+import cv2
 
 
 
@@ -75,12 +74,6 @@ class RenameWindow(QtGui.QDialog):
 
 
     def GetImage(self):
-        # 清空圖片和文字輸入框
-        for i, obj in enumerate(self.inputBoxs):
-            obj.clear()
-        for i,obj in enumerate(self.pixBoxs):
-            obj.clear()
-
         # 取得驗證碼stream
         s = requests.Session()
         req = s.get('http://railway.hinet.net/ImageOut.jsp')
@@ -89,39 +82,31 @@ class RenameWindow(QtGui.QDialog):
         io = StringIO()
         im.save(io, format='png')
         qimg = QtGui.QImage.fromData(io.getvalue())
-        # 原始驗證碼
         self.captchaPic.setPixmap(QtGui.QPixmap(qimg))
 
         Img = Image(req.content)
         # 取得處理完後的圖片
-        self.imgarr = Img.StartProcess()
-        # 用來儲存轉成QPixmap的圖片 用來存檔
-        self.PixMaparr = []
-        for index,img in enumerate(self.imgarr):
+        imgarr = Img.StartProcess()
+
+        for index,img in enumerate(imgarr):
             try:
                 height, width,channel = img.shape
                 bytes = 3*width
-                pixmap = QtGui.QPixmap(QtGui.QImage(img.data, width, height,bytes, QtGui.QImage.Format_RGB888))
-                self.pixBoxs[index].setPixmap(pixmap)
-                self.PixMaparr.append(pixmap)
+                self.pixBoxs[index].setPixmap(QtGui.QPixmap(QtGui.QImage(img.data, width, height,bytes, QtGui.QImage.Format_RGB888)))
             except:
                 pass
 
     def saveImg(self):
-
-        if len(self.imgarr) > 0:
-            for index,pixmap in enumerate(self.PixMaparr):
-                name = self.inputBoxs[index].text()
-                # 如果輸入的檔名不為空 就存檔
-                if name:
-                    # 取得圖片的流水號
-                    fullname = self.GetFileSeqName(name)
-                    pixmap.save(fullname)
-        # 重新取得驗證碼
+        print('存檔')
+        # 取得圖片
         self.GetImage()
+        # 清空輸入框
+        for i,obj in enumerate(self.inputBoxs):
+            obj.clear()
 
         self.input1.setFocus(True)
 
+<<<<<<< HEAD
     def GetFileSeqName(self,inputName):
         savePath = r"D:\CaptchaSingle"
         for root, dirs, files in os.walk(savePath):
@@ -133,6 +118,8 @@ class RenameWindow(QtGui.QDialog):
 
         fullname = savePath +'\\'+ inputName + '_' + str(len(indices)+1) +'.png'
         return fullname
+=======
+>>>>>>> parent of f9cce79... 完成驗證碼批次命名
 
 
 class smallPicBox(QtGui.QLabel):
