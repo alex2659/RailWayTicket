@@ -296,13 +296,13 @@ class Image:
             :param unified:  已經判斷完 合併後的輪廓
             :return:
             '''
-            print('============\n執行次數:'+ str(excuteTimes))
+            # print('============\n執行次數:'+ str(excuteTimes))
             unsucess = [] # 面積過大的輪廓放進來重新判斷
             # 取得各輪廓距離的分類
             status = getStatus(contours ,distance)
-            print('status:\n')
-            print(status)
-            print('areas and width:\n')
+            # print('status:\n')
+            # print(status)
+            # print('areas and width:\n')
             maximum = int(status.max()) + 1
             for i in xrange(maximum):
                 pos = np.where(status == i)[0]
@@ -312,8 +312,8 @@ class Image:
                     # 如果面積大於200 就是錯誤合併兩個數字了
                     area = cv2.contourArea(cont)
                     (x, y, w, h) = cv2.boundingRect(cont)
-                    print(area)
-                    print(x, y, w, h)
+                    # print(area)
+                    # print(x, y, w, h)
                     # 當面積大於200或寬度大於25或高度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
                     if (area > 200 or w > 25 or h > 25) and distance > 0:
                         for i in pos:
@@ -416,6 +416,7 @@ class Image:
             # resize 成相同大小以利後續辨識
             thresh = cv2.resize(thresh, (50, 50))
             # Convert to RGB for QImage.
+            # 轉成RGB 這樣pyqt才能讀取
             thresh = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
             imgarr.append(thresh)
         self.dicImg.update({"轉正": imgarr})
