@@ -194,7 +194,7 @@ class Image:
                 for x in range(width):
                     try:
                         # 如果顏色是在雜點的range 就進行膨脹/腐蝕判斷
-                        if self.im[y,x][0] in [0,127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255]:
+                        if self.im[y,x][0] in [0,127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255,0]:
                             nlst = neighbours(self.im, y, x)
                             # 依據operator 將out_im[y,x]設為相鄰像素中最大或最小的像素
                             out_im[y, x] = operator(nlst,key = lambda x:np.mean(x))
@@ -382,7 +382,7 @@ class Image:
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
-        contours = [c for c  in contours if 10 < cv2.contourArea(c) < 1000]
+        contours = [c for c  in contours if 4 < cv2.contourArea(c) < 1000]
         # 將鄰近的輪廓合併
         unified = MergeEachCnts(contours, 10)
 
