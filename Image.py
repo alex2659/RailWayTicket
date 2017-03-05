@@ -87,7 +87,7 @@ class Image:
         self.im = cv2.convertScaleAbs(im2)  # Converting image back to uint8
         #  存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
-        self.dicImg.update({"色調分離": self.im.copy()})
+        self.dicImg.update({"posterization": self.im.copy()})
 
     #  干擾線檢測  (只檢查寬度為2pxiel的直線&橫線)
     def removeBlackLines(self):
@@ -195,10 +195,11 @@ class Image:
                 for x in range(width):
                     try:
                         # 如果顏色是在雜點的range 就進行膨脹/腐蝕判斷
-                        if self.im[y,x][0] in [0,127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255,0]:
+                        if self.im[y,x][0] in [127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255]:
                             nlst = neighbours(self.im,operator, y, x)
                             # 依據operator 將out_im[y,x]設為相鄰像素中最大或最小的像素
                             out_im[y, x] = nlst
+                        # 如果顏色是驗證碼本體的範圍內 就進行雜點運算
                         else:
                             out_im[y,x] = self.im[y,x]
                     except Exception as e:
@@ -237,7 +238,7 @@ class Image:
         # self.im = cv2.morphologyEx(self.im, cv2.MORPH_CLOSE, kernel)
         #
         # # 顯示腐蝕後的圖像
-        self.dicImg.update({"閉運算": self.im.copy()})
+        self.dicImg.update({"morphological": self.im.copy()})
     # 把多餘的白色圖片切掉
     def cutBlankImage(self):
         # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
@@ -360,8 +361,8 @@ class Image:
                     (x, y, w, h) = cv2.boundingRect(cont)
                     # print(area)
                     # print(x, y, w, h)
-                    # 當面積大於200或寬度大於25或高度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
-                    if (area > 200 or w > 25 or h > 25) and distance > 0:
+                    # 當面積大於200或寬度大於20或高度大於20且distance大於0 才會加到錯誤判斷輪廓的陣列
+                    if (area > 200 or w > 20 or h > 20) and distance > 0:
                         for i in pos:
                             unsucess.append(contours[i])
                     # 如果distance已經小於0 就把未經合併的原始輪廓加到unified
@@ -532,5 +533,5 @@ if __name__ == '__main__':
         # x.removeNoise()
         # x.threshold()
         x.splitImg()
-        # x.positiveImg()
+        x.positiveImg()
         x.showImgEveryStep()
