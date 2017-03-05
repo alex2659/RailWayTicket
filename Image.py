@@ -6,6 +6,7 @@ import collections
 import sys
 import requests
 import numpy as np
+import operator
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
@@ -185,7 +186,7 @@ class Image:
     # 閉運算
     def mop_close(self):
         # slef.im[x,y] x是高 y是寬
-        def morphological(operator=min):
+        def morphological(operator=operator.gt):
             height, width, _ = self.im.shape
             # 創建一個空白圖片
             out_im = np.zeros((height,width,3), np.uint8)
@@ -195,31 +196,36 @@ class Image:
                     try:
                         # 如果顏色是在雜點的range 就進行膨脹/腐蝕判斷
                         if self.im[y,x][0] in [0,127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255,0]:
-                            nlst = neighbours(self.im, y, x)
+                            nlst = neighbours(self.im,operator, y, x)
                             # 依據operator 將out_im[y,x]設為相鄰像素中最大或最小的像素
-                            out_im[y, x] = operator(nlst,key = lambda x:np.mean(x))
+                            out_im[y, x] = nlst
                         else:
                             out_im[y,x] = self.im[y,x]
                     except Exception as e:
-                        print(e)
+                        print('morphological:' + str(e))
             return out_im
 
-        def neighbours(pix,y, x):
-            nlst = []
-            # 搜尋im[y,x]周邊的像素 將它們加到nlst陣列
+        def neighbours(pix,operator,y, x):
+            # nlst = []
+            pixel = None
+            # 搜尋im[y,x]周邊的像素 依據operator 找出最大或最小的像素
             for yy in range(y-1,y+1):
                 for xx in range(x-1,x+1):
                     try:
-                        nlst.append(pix[yy, xx])
-                    except:
-                        pass
-            return np.array(nlst)
+                        if pixel is not None:
+                            if operator(pix[yy,xx].sum(),pixel.sum()):
+                                pixel = pix[yy,xx]
+                        else:
+                            pixel = pix[yy, xx]
+                    except Exception as e:
+                        print('neighbours:'+ str(e))
+            return pixel
 
         def erosion(im):
-            return morphological(min)
+            return morphological(operator.lt)
 
         def dilation(im):
-            return morphological(max)
+            return morphological(operator.gt)
 
         self.im = dilation(self.im)
         self.im = erosion(self.im)
