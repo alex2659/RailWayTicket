@@ -337,7 +337,6 @@ class Image:
         # 找出各輪廓的距離
         def find_if_close(cnt1, cnt2, distance):
             row1, row2 = cnt1.shape[0], cnt2.shape[0]
-            print('兩個輪廓的重心距離'+str(dist))
             for i in xrange(row1):
                 for j in xrange(row2):
                     dist = np.linalg.norm(cnt1[i] - cnt2[j])
@@ -396,8 +395,8 @@ class Image:
                     elif area > 200 and distance <= 0:
                         for i in pos:
                             unified.append(contours[i])
-                    # 如果面積<30且寬高皆小於10 判斷為雜點
-                    elif (area < 30 and w < 10 and h < 10):
+                    # 如果面積<26且寬高皆小於9 判斷為雜點
+                    elif (area < 26 and w < 9 and h < 9):
                         pass
                     else:
                         unified.append(cont)
@@ -429,25 +428,26 @@ class Image:
         # 依照X軸排序輪廓
         unified = sorted([(c ,cv2.boundingRect(c)[0],cv2.contourArea(c)) for c in unified], key=lambda x: x[1])
         # 再將太小的輪廓移除
-        unified = [c for c,v,a in unified if 20 < a < 200]
+        unified = [c for c,v,a in unified if 15 < a < 200]
         for index, c in enumerate(unified):
             (x, y, w, h) = cv2.boundingRect(c)
-            self.arr.append((x, y, w, h))
             # print('目前輪廓rect :'+str(x)+' '+ str(y)+' '+ str(w)+' '+ str(h))
-            # try:
-            #     # 只將寬高大於 7 視為數字留存
-            #     if w > 7 and h > 7:
-            #         add = True
-            #         for i in range(0, len(self.arr)):
-            #             print(str(self.arr[i][0:2]))
-            #             # if abs(c[index][1] - self.arr[i][0]) <= 8:
-            #             #     add = False
-            #             #     break
-            #         if add:
-            #             self.arr.append((x, y, w, h))
+            try:
+                # 只將寬高大於 7 視為數字留存
+                if w > 7 and h > 7:
+                    add = True
+                    for i,img in enumerate(self.arr):
+                        # 計算此輪廓與其他輪廓重心的距離 如果小於10 代表這兩輪廓是重疊的 例如6 0 9 會造成此誤判
+                        dist = math.sqrt((x - img[0]) ** 2 + (y - img[1]) ** 2)
+                        # print('距離:'+str(dist))
+                        if dist <= 10:
+                            add = False
+                            break
+                    if add:
+                        self.arr.append((x, y, w, h))
 
-            # except IndexError:
-            #     pass
+            except IndexError:
+                pass
         Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
         self.dicImg.update({"圖片切割": Imgarr})
         return Imgarr
@@ -553,7 +553,7 @@ if __name__ == '__main__':
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
         # req = requests.get('http://railway.hinet.net/ImageOut.jsp')
         # x = Image(req.content)
-        path=r'D:\FailCaptcha\12.png'
+        path=r'D:\FailCaptcha\26.png'
         x = Image(path,'local')
 
         x.posterization() #色調分離
