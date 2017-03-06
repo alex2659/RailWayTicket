@@ -430,7 +430,7 @@ class Image:
                     add = True
                     for i in range(0, len(self.arr)):
                         # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-                        if abs(c[index][1] - self.arr[i][0]) <= 5:
+                        if abs(c[index][1] - self.arr[i][0]) <= 8:
                             add = False
                             break
                     if add:

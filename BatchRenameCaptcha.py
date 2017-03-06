@@ -15,6 +15,7 @@ import re
 class RenameWindow(QtGui.QDialog):
     def __init__(self, parent=None):
         super(RenameWindow, self).__init__(parent)
+        self.originCaptcha = None
         self.setWindowTitle(u'重新命名驗證碼')
         self.grid = QtGui.QGridLayout(self)
 
@@ -89,6 +90,7 @@ class RenameWindow(QtGui.QDialog):
         io = StringIO()
         im.save(io, format='png')
         qimg = QtGui.QImage.fromData(io.getvalue())
+        self.captchaPic.qimage = qimg
         # 原始驗證碼
         self.captchaPic.setPixmap(QtGui.QPixmap(qimg))
 
@@ -101,7 +103,9 @@ class RenameWindow(QtGui.QDialog):
             try:
                 height, width,channel = img.shape
                 bytes = 3*width
-                pixmap = QtGui.QPixmap(QtGui.QImage(img.data, width, height,bytes, QtGui.QImage.Format_RGB888))
+                qimg = QtGui.QImage(img.data, width, height,bytes, QtGui.QImage.Format_RGB888)
+                pixmap = QtGui.QPixmap(qimg)
+                self.pixBoxs[index].qimage = qimg
                 self.pixBoxs[index].setPixmap(pixmap)
                 self.PixMaparr.append(pixmap)
             except:
@@ -133,12 +137,25 @@ class RenameWindow(QtGui.QDialog):
 
 
 class smallPicBox(QtGui.QLabel):
+
     def __init__(self, width,height,parent=None):
         super(smallPicBox, self).__init__(parent)
+        self.qimage = None # 用來存放qimage 點擊圖片時就能下載
         self.setFixedSize(width,height)
         self.setStyleSheet(
             'border:1px solid rgb(0, 0, 0)'
         )
+    # 點擊驗證碼的圖片就將原始驗證碼存檔
+    def mouseReleaseEvent(self, event):
+        savePath = r"C:\Users\vi000\Desktop"
+        for root, dirs, files in os.walk(savePath):
+            indices = [i for i, x in enumerate(files)]
+            print(len(indices))
+
+        fullname = savePath +'\\' + str(len(indices)+1) +'.png'
+        if self.qimage:
+            self.qimage.save(fullname)
+
 
 if __name__ == '__main__':
     app =QtGui.QApplication(sys.argv)
