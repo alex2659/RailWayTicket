@@ -1,13 +1,8 @@
-def test():
-    print('test')
-    def AA():
-        print('AA')
-    def BB():
-        print('BB')
-
-    AA()
+import operator
+import numpy
 
 
-
-
-test()
+test = numpy.array([255,255,255])
+test2 = numpy.array([0,0,0])
+test3 = numpy.array([0,0,0])
+print(operator.gt(test.sum(),test3.sum()))

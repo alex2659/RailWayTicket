@@ -6,6 +6,7 @@ import collections
 import sys
 import requests
 import numpy as np
+import operator
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
@@ -45,7 +46,7 @@ class Image:
         retval, self.im = cv2.threshold(gray_image, 200, 255, cv2.THRESH_BINARY)
         # 存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + 'Threshold.png', self.im)
-        # self.dicImg.update({"閾值化": self.im.copy()})
+        self.dicImg.update({"閾值化": self.im.copy()})
 
     #  去噪
     def removeNoise(self):
@@ -61,7 +62,7 @@ class Image:
                             except IndexError:
                                 pass
                     # 這裡 threshold 設 4，當週遭小於 4 個點的話視為雜點
-                    if count <= 3:
+                    if count <= 2:
                         self.im[i][j] = 0
 
         self.im = cv2.dilate(self.im, (2, 2), iterations=1)
@@ -86,7 +87,7 @@ class Image:
         self.im = cv2.convertScaleAbs(im2)  # Converting image back to uint8
         #  存檔
         #cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
-        self.dicImg.update({"色調分離": self.im.copy()})
+        self.dicImg.update({"posterization": self.im.copy()})
 
     #  干擾線檢測  (只檢查寬度為2pxiel的直線&橫線)
     def removeBlackLines(self):
@@ -163,7 +164,7 @@ class Image:
                     i += countHeight
         # 存檔
         # cv2.imwrite("D:\\CaptchaRaw\\" + self.imageName + '.png', self.im)
-        # self.dicImg.update({"干擾線檢測": self.im.copy()})
+        self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     #  傳入RGB的pixel 判斷是否是黑點  (色調分離後 干擾線的RGB會變(127,127,127))
     def CheckPixelIsBlack(self, pixel, min= 127,max= 127):
@@ -184,14 +185,78 @@ class Image:
 
     # 閉運算
     def mop_close(self):
-        # 定義結構元素
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        # slef.im[x,y] x是高 y是寬
+        def morphological(operator=operator.gt):
+            height, width, _ = self.im.shape
+            # 創建一個空白圖片
+            out_im = np.zeros((height,width,3), np.uint8)
+            out_im.fill(255) # 填滿白色
+            for y in range(height):
+                for x in range(width):
+                    try:
+                        # 如果顏色是在雜點的range 就進行膨脹/腐蝕判斷
+                        if self.im[y,x][0] in [127,255] and self.im[y,x][1] in [127,255] and self.im[y,x][2] in [127,255]:
+                            nlst = neighbours(self.im,operator, y, x)
+                            # 依據operator 將out_im[y,x]設為相鄰像素中最大或最小的像素
+                            out_im[y, x] = nlst
+                        # 如果顏色是驗證碼本體的範圍內 就進行雜點判斷
+                        else:
+                            if  not CheckIsNoise(self.im, y, x):
+                                out_im[y,x] = self.im[y,x]
+                    except Exception as e:
+                        print('morphological:' + str(e))
+            return out_im
 
-        # 閉運算
-        self.im = cv2.morphologyEx(self.im, cv2.MORPH_CLOSE, kernel)
+        def neighbours(pix,operator,y, x):
+            # nlst = []
+            pixel = None
+            # 搜尋im[y,x]周邊的像素 依據operator 找出最大或最小的像素
+            for yy in range(y-1,y+1):
+                for xx in range(x-1,x+1):
+                    try:
+                        if pixel is not None:
+                            if operator(pix[yy,xx].sum(),pixel.sum()):
+                                pixel = pix[yy,xx]
+                        else:
+                            pixel = pix[yy, xx]
+                    except Exception as e:
+                        print('neighbours:'+ str(e))
+            return pixel
+        # 判斷是不是雜點
+        def CheckIsNoise(pix,y, x):
+            count = 0
+            try:
+                for yy in range(y-2,y+3):
+                    for xx in range(x-2,x+3):
+                        # 如果不是255,255,255 代表不是白色點 count+1
+                        if not self.CheckPixelColor(pix[yy,xx],255,255):
+                            count += 1
+            except:
+                pass
+            # 如果周圍的非白點小於3 代表是雜點
+            if count <=3:
+                return True
+            else:
+                return False
 
-        # 顯示腐蝕後的圖像
-        # self.dicImg.update({"閉運算": self.im.copy()})
+
+        def erosion(im):
+            return morphological(operator.lt)
+
+        def dilation(im):
+            return morphological(operator.gt)
+
+        self.im = dilation(self.im)
+        self.im = erosion(self.im)
+
+                # # 定義結構元素
+        # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        #
+        # # 閉運算
+        # self.im = cv2.morphologyEx(self.im, cv2.MORPH_CLOSE, kernel)
+        #
+        # # 顯示腐蝕後的圖像
+        self.dicImg.update({"morphological": self.im.copy()})
     # 把多餘的白色圖片切掉
     def cutBlankImage(self):
         # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
@@ -296,13 +361,13 @@ class Image:
             :param unified:  已經判斷完 合併後的輪廓
             :return:
             '''
-            print('============\n執行次數:'+ str(excuteTimes))
+            # print('============\n執行次數:'+ str(excuteTimes))
             unsucess = [] # 面積過大的輪廓放進來重新判斷
             # 取得各輪廓距離的分類
             status = getStatus(contours ,distance)
-            print('status:\n')
-            print(status)
-            print('areas and width:\n')
+            # print('status:\n')
+            # print(status)
+            # print('areas and width:\n')
             maximum = int(status.max()) + 1
             for i in xrange(maximum):
                 pos = np.where(status == i)[0]
@@ -312,18 +377,18 @@ class Image:
                     # 如果面積大於200 就是錯誤合併兩個數字了
                     area = cv2.contourArea(cont)
                     (x, y, w, h) = cv2.boundingRect(cont)
-                    print(area)
-                    print(x, y, w, h)
-                    # 當面積大於200或寬度大於25或高度大於25且distance大於0 才會加到錯誤判斷輪廓的陣列
-                    if (area > 200 or w > 25 or h > 25) and distance > 0:
+                    # print(area)
+                    # print(x, y, w, h)
+                    # 當面積大於200或寬度大於20或高度大於20且distance大於0 才會加到錯誤判斷輪廓的陣列
+                    if (area > 200 or w > 20 or h > 20) and distance > 0:
                         for i in pos:
                             unsucess.append(contours[i])
                     # 如果distance已經小於0 就把未經合併的原始輪廓加到unified
                     elif area > 200 and distance <= 0:
                         for i in pos:
                             unified.append(contours[i])
-                    # 如果面積<25且寬度小於10 判斷為雜點
-                    elif area < 25 and w < 10:
+                    # 如果面積<8且寬度小於5 判斷為雜點
+                    elif area < 8 and w < 5:
                         pass
                     else:
                         unified.append(cont)
@@ -342,7 +407,7 @@ class Image:
         contours, hierarchy = cv2.findContours(self.im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
-        contours = [c for c  in contours if 10 < cv2.contourArea(c) < 1000]
+        contours = [c for c  in contours if 4 < cv2.contourArea(c) < 1000]
         # 將鄰近的輪廓合併
         unified = MergeEachCnts(contours, 10)
 
@@ -365,7 +430,7 @@ class Image:
                     add = True
                     for i in range(0, len(self.arr)):
                         # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-                        if abs(c[index][1] - self.arr[i][0]) <= 3:
+                        if abs(c[index][1] - self.arr[i][0]) <= 5:
                             add = False
                             break
                     if add:
@@ -483,10 +548,8 @@ if __name__ == '__main__':
         x.mop_close() #閉運算
         # x.SaveImg()
         x.removeBlackLines() #直線檢測
-        # x.medianBlur()
-        # x.threshold()
-        # x.cutBlankImage() #去掉圖片空白部份
         # x.removeNoise()
+        # x.threshold()
         x.splitImg()
         x.positiveImg()
         x.showImgEveryStep()
