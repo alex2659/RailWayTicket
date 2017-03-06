@@ -199,9 +199,10 @@ class Image:
                             nlst = neighbours(self.im,operator, y, x)
                             # 依據operator 將out_im[y,x]設為相鄰像素中最大或最小的像素
                             out_im[y, x] = nlst
-                        # 如果顏色是驗證碼本體的範圍內 就進行雜點運算
+                        # 如果顏色是驗證碼本體的範圍內 就進行雜點判斷
                         else:
-                            out_im[y,x] = self.im[y,x]
+                            if  not CheckIsNoise(self.im, y, x):
+                                out_im[y,x] = self.im[y,x]
                     except Exception as e:
                         print('morphological:' + str(e))
             return out_im
@@ -221,6 +222,23 @@ class Image:
                     except Exception as e:
                         print('neighbours:'+ str(e))
             return pixel
+        # 判斷是不是雜點
+        def CheckIsNoise(pix,y, x):
+            count = 0
+            try:
+                for yy in range(y-2,y+3):
+                    for xx in range(x-2,x+3):
+                        # 如果不是255,255,255 代表不是白色點 count+1
+                        if not self.CheckPixelColor(pix[yy,xx],255,255):
+                            count += 1
+            except:
+                pass
+            # 如果周圍的非白點小於3 代表是雜點
+            if count <=3:
+                return True
+            else:
+                return False
+
 
         def erosion(im):
             return morphological(operator.lt)
