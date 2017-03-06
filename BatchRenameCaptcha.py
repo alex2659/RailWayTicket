@@ -147,7 +147,7 @@ class smallPicBox(QtGui.QLabel):
         )
     # 點擊驗證碼的圖片就將原始驗證碼存檔
     def mouseReleaseEvent(self, event):
-        savePath = r"C:\Users\vi000\Desktop"
+        savePath = r"D:\FailCaptcha"
         for root, dirs, files in os.walk(savePath):
             indices = [i for i, x in enumerate(files)]
             print(len(indices))

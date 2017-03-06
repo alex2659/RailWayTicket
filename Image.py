@@ -10,6 +10,7 @@ import operator
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
+import math
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -17,8 +18,13 @@ sys.setdefaultencoding("utf-8")
 
 class Image:
 
-    #  傳入requests回傳的content
-    def __init__(self, stream):
+    '''
+    如果type=url
+    getimg參數要傳入requests回傳的content
+    如果type=local
+    getimg參數要傳入圖片本地路徑
+    '''
+    def __init__(self, getimg, type='url'):
         #  設置 matplotlib 中文字體
         self.font = FontProperties(fname=r"c:\windows\fonts\SimSun.ttc", size=14)
         #  儲存檔名
@@ -31,9 +37,11 @@ class Image:
         self.dicImg = collections.OrderedDict()
         #  將圖片做灰階
         # self.im = cv2.imread(Path + "\\" + ImgName)
-
-        image = np.asarray(bytearray(stream), dtype="uint8")
-        self.im = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        if type =='url':
+            image = np.asarray(bytearray(getimg), dtype="uint8")
+            self.im = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        elif type=='local':
+            self.im = cv2.imread(getimg)
         # self.dicImg.update({"原始驗證碼": self.im.copy()})
 
 
@@ -167,7 +175,7 @@ class Image:
         self.dicImg.update({"干擾線檢測": self.im.copy()})
 
     #  傳入RGB的pixel 判斷是否是黑點  (色調分離後 干擾線的RGB會變(127,127,127))
-    def CheckPixelIsBlack(self, pixel, min= 127,max= 127):
+    def CheckPixelIsBlack(self, pixel, min= 0,max= 127):
         return self.CheckPixelColor(pixel,min,max)
     #  傳入RGB的pixel 判斷是否是白點
     def CheckPixelIsWhite(self, pixel, min= 160,max= 255):
@@ -329,6 +337,7 @@ class Image:
         # 找出各輪廓的距離
         def find_if_close(cnt1, cnt2, distance):
             row1, row2 = cnt1.shape[0], cnt2.shape[0]
+            print('兩個輪廓的重心距離'+str(dist))
             for i in xrange(row1):
                 for j in xrange(row2):
                     dist = np.linalg.norm(cnt1[i] - cnt2[j])
@@ -387,8 +396,8 @@ class Image:
                     elif area > 200 and distance <= 0:
                         for i in pos:
                             unified.append(contours[i])
-                    # 如果面積<8且寬度小於5 判斷為雜點
-                    elif area < 8 and w < 5:
+                    # 如果面積<30且寬高皆小於10 判斷為雜點
+                    elif (area < 30 and w < 10 and h < 10):
                         pass
                     else:
                         unified.append(cont)
@@ -409,7 +418,7 @@ class Image:
         # 取出輪廓的範圍、區域大小 且過濾面積太小的輪廓
         contours = [c for c  in contours if 4 < cv2.contourArea(c) < 1000]
         # 將鄰近的輪廓合併
-        unified = MergeEachCnts(contours, 10)
+        unified = MergeEachCnts(contours, 7)
 
         a = colorIm.copy()
         cv2.drawContours(a, contours, -1, (255, 0, 0), 1)
@@ -424,20 +433,21 @@ class Image:
         for index, c in enumerate(unified):
             (x, y, w, h) = cv2.boundingRect(c)
             self.arr.append((x, y, w, h))
-            try:
-                # 只將寬高大於 8 視為數字留存
-                if w > 3 and h > 3:
-                    add = True
-                    for i in range(0, len(self.arr)):
-                        # 這邊是要防止如 0、9 等，可能會偵測出兩個點，當兩點過於接近需忽略
-                        if abs(c[index][1] - self.arr[i][0]) <= 8:
-                            add = False
-                            break
-                    if add:
-                        self.arr.append((x, y, w, h))
+            # print('目前輪廓rect :'+str(x)+' '+ str(y)+' '+ str(w)+' '+ str(h))
+            # try:
+            #     # 只將寬高大於 7 視為數字留存
+            #     if w > 7 and h > 7:
+            #         add = True
+            #         for i in range(0, len(self.arr)):
+            #             print(str(self.arr[i][0:2]))
+            #             # if abs(c[index][1] - self.arr[i][0]) <= 8:
+            #             #     add = False
+            #             #     break
+            #         if add:
+            #             self.arr.append((x, y, w, h))
 
-            except IndexError:
-                pass
+            # except IndexError:
+            #     pass
         Imgarr = [self.im[y: y + h, x: x + w] for x, y, w, h in self.arr]
         self.dicImg.update({"圖片切割": Imgarr})
         return Imgarr
@@ -539,11 +549,13 @@ class Image:
 
 # 目前步驟 1.色調分離 濾掉背景色 2.移除黑線
 if __name__ == '__main__':
-    for i in range(10):
+    for i in range(1):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
-        req = requests.get('http://railway.hinet.net/ImageOut.jsp')
+        # req = requests.get('http://railway.hinet.net/ImageOut.jsp')
+        # x = Image(req.content)
+        path=r'D:\FailCaptcha\12.png'
+        x = Image(path,'local')
 
-        x = Image(req.content)
         x.posterization() #色調分離
         x.mop_close() #閉運算
         # x.SaveImg()
