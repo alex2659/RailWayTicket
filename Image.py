@@ -265,6 +265,14 @@ class Image:
         #
         # # 顯示腐蝕後的圖像
         self.dicImg.update({"morphological": self.im.copy()})
+
+        # retval, t = cv2.threshold(self.im, 125, 1, cv2.THRESH_BINARY)
+        # h_sum = t.sum(axis=0)
+        # v_sum = t.sum(axis=1)
+        # x1, x2 = (v_sum > 1).nonzero()[0][0], (v_sum > 1).nonzero()[0][-1]
+        # y1, y2 = (h_sum > 5).nonzero()[0][0], (h_sum > 1).nonzero()[0][-1]
+        # self.im = self.im[x1:x2, y1:y2]
+        # self.dicImg.update({"移除空白部份": self.im.copy()})
     # 把多餘的白色圖片切掉
     def cutBlankImage(self):
         # 創建一個空白圖片(img.shape[0]為height,img.shape[1]為width)
@@ -549,12 +557,12 @@ class Image:
 
 # 目前步驟 1.色調分離 濾掉背景色 2.移除黑線
 if __name__ == '__main__':
-    for i in range(1):
+    for i in range(10):
         #  取得驗證碼資料夾裡 隨機一個驗證碼的路徑
-        # req = requests.get('http://railway.hinet.net/ImageOut.jsp')
-        # x = Image(req.content)
-        path=r'D:\FailCaptcha\26.png'
-        x = Image(path,'local')
+        req = requests.get('http://railway.hinet.net/ImageOut.jsp')
+        x = Image(req.content)
+        # path=r'D:\FailCaptcha\26.png'
+        # x = Image(path,'local')
 
         x.posterization() #色調分離
         x.mop_close() #閉運算
