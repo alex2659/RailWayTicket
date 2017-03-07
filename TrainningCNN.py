@@ -73,6 +73,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adagrad')
 # print(X_test.shape[0], 'test samples')
 #
 # # convert class vectors to binary class matrices
+# print(y_train)
 # Y_train = np_utils.to_categorical(y_train, nb_classes)
 # Y_test = np_utils.to_categorical(y_test, nb_classes)
 #

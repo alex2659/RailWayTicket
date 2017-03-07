@@ -32,6 +32,7 @@ step 1.
 
 Step2.
     安裝Anaconda2  python2.7版本
+    安裝Keras 1.22版本
 
 Step3.
     安裝以下package

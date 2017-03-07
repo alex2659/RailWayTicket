@@ -1,6 +1,4 @@
 import operator
-import numpy as np
+import keras
 
-
-imgs = np.zeros((5, 1, 32, 32), dtype=np.uint8)
-print(imgs)
+print(keras.__version__)

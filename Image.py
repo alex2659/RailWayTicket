@@ -269,6 +269,9 @@ class Image:
         # retval, t = cv2.threshold(self.im, 125, 1, cv2.THRESH_BINARY)
         # h_sum = t.sum(axis=0)
         # v_sum = t.sum(axis=1)
+        # print('h_sum = '+str(type(h_sum))+ str(h_sum)+'\n')
+        # print('h_sum>5= '+str((h_sum > 5))+'\n')
+        # print('nonezero= '+str((h_sum > 5).nonzero()))
         # x1, x2 = (v_sum > 1).nonzero()[0][0], (v_sum > 1).nonzero()[0][-1]
         # y1, y2 = (h_sum > 5).nonzero()[0][0], (h_sum > 1).nonzero()[0][-1]
         # self.im = self.im[x1:x2, y1:y2]
