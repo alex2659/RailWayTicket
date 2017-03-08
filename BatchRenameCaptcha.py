@@ -127,7 +127,7 @@ class RenameWindow(QtGui.QDialog):
         self.input1.setFocus(True)
 
     def GetFileSeqName(self,inputName):
-        savePath = r"D:\CaptchaSingle"
+        savePath = r"D:\CaptchaTest"
         for root, dirs, files in os.walk(savePath):
             indices = [i for i, x in enumerate(files) if x.startswith(inputName)]
             print(len(indices))
