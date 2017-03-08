@@ -1,4 +1,4 @@
-import operator
-import keras
+import re
 
-print(keras.__version__)
+m = re.search(r'(\d)_\d*.png','D:\\CaptchaSingle\\0_13165.png')
+print(m.group(1))
