@@ -1,6 +1,7 @@
 # encoding: utf-8
 import requests
 from PIL import Image
+from Image import Image as CVImg
 from PyQt4 import QtCore, QtGui
 from StringIO import StringIO
 import re
