@@ -9,13 +9,12 @@
 
 目錄架構
 -----------------------------
-BatchRenameCaptcha  批次命名驗證碼 用來訓練模型
+BatchRenameCaptcha  批次命名驗證碼 用來產生模型訓練資料集
 BuyTicket.py        買票爬蟲
-DownloadCaptcha.py  下載驗證碼
 Image.py            處理驗證碼
+kerasInitModel      初始化keras model
 MainWindow.py       顯示GUI視窗
 station.json        存放台鐵車站代碼
-TaiwanRailWayUI.py  讓pyqt執行的ui檔
 TrainningCNN.py     訓練CNN模型
 VPN.py              執行VPN
 
